@@ -1,0 +1,167 @@
+<?php
+ini_set("error_reporting", 1);
+session_start();
+include("../koneksi.php");
+    $modal_id=$_GET['id'];
+	$pos=strpos($modal_id,"#");
+	$KodeBng=substr($modal_id,0,$pos);
+	$IntDoc=substr($modal_id,$pos+1,300);
+	
+?>
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+			<form class="form-horizontal" name="modal_popup" data-toggle="validator" method="post" action="UbahStokBenang" enctype="multipart/form-data">  
+            <div class="modal-header">
+              <h5 class="modal-title">Detail Data Stock Benang Untuk <?php echo $IntDoc; ?></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+			<input type="hidden" value="<?php echo $IntDoc; ?>" name="intdoc">
+			<input type="hidden" value="<?php echo $KodeBng; ?>" name="kdbng">	
+            <table id="lookup1" class="table table-sm table-bordered table-striped" style="font-size:13px;">
+                  <thead>
+                  <tr>
+                    <th style="text-align: center">#</th>
+                    <th style="text-align: center">No</th>
+                    <th style="text-align: center">Tipe</th>
+                    <th style="text-align: center">Code</th>
+                    <th style="text-align: center">Jenis Benang</th>
+                    <th style="text-align: center">Lot</th>
+                    <th style="text-align: center">SupplierCode</th>
+                    <th style="text-align: center">Weight</th>
+                    <th style="text-align: center">Qty</th>
+                    <th style="text-align: center">Cones</th>
+                    <th style="text-align: center">Zone</th>
+                    <th style="text-align: center">Lokasi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+				  <?php				  
+   $no=1;   
+   $c=0;
+	$sqlDB21 = " SELECT 
+c.SUPPLIERCODE, 
+b.LOTCODE,
+b.ITEMTYPECODE,
+b.DECOSUBCODE01,
+b.DECOSUBCODE02,
+b.DECOSUBCODE03,
+b.DECOSUBCODE04,
+b.DECOSUBCODE05,
+b.DECOSUBCODE06,
+b.DECOSUBCODE07,
+b.DECOSUBCODE08,
+SUM(b.BASEPRIMARYQUANTITYUNIT) AS KGS,
+SUM(b.BASESECONDARYQUANTITYUNIT) AS CONES,
+COUNT(b.ELEMENTSCODE) AS QTY,
+b.WHSLOCATIONWAREHOUSEZONECODE,
+b.WAREHOUSELOCATIONCODE FROM BALANCE b 
+LEFT OUTER JOIN LOT c ON c.CODE =b.LOTCODE
+WHERE (b.ITEMTYPECODE ='GYR' OR b.ITEMTYPECODE ='DYR') AND
+b.LOGICALWAREHOUSECODE = 'M011' AND 
+(
+b.WHSLOCATIONWAREHOUSEZONECODE='GB1' OR  
+b.WHSLOCATIONWAREHOUSEZONECODE='GB2' OR
+b.WHSLOCATIONWAREHOUSEZONECODE='GB5' OR
+b.WHSLOCATIONWAREHOUSEZONECODE='GB6' OR 
+b.WHSLOCATIONWAREHOUSEZONECODE='GP1' OR 
+b.WHSLOCATIONWAREHOUSEZONECODE='GR2' OR 
+b.WHSLOCATIONWAREHOUSEZONECODE='GR3' OR 
+b.WHSLOCATIONWAREHOUSEZONECODE='LT') AND
+CONCAT(trim(b.DECOSUBCODE01),CONCAT(trim(b.DECOSUBCODE02),CONCAT(trim(b.DECOSUBCODE03),CONCAT(trim(b.DECOSUBCODE04),CONCAT(trim(b.DECOSUBCODE05),CONCAT(trim(b.DECOSUBCODE06),CONCAT(trim(b.DECOSUBCODE07),trim(b.DECOSUBCODE08))))))))='$KodeBng' 
+GROUP BY b.LOTCODE, b.ITEMTYPECODE,
+b.DECOSUBCODE01, b.DECOSUBCODE02,
+b.DECOSUBCODE03, b.DECOSUBCODE04,
+b.DECOSUBCODE05, b.DECOSUBCODE06,
+b.DECOSUBCODE07, b.DECOSUBCODE08,
+b.WHSLOCATIONWAREHOUSEZONECODE,
+b.WAREHOUSELOCATIONCODE,c.SUPPLIERCODE ";
+	$stmt1   = db2_exec($conn1,$sqlDB21, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21 = db2_fetch_assoc($stmt1)){
+	$kd= trim($rowdb21['DECOSUBCODE01'])."-".trim($rowdb21['DECOSUBCODE02'])."-".trim($rowdb21['DECOSUBCODE03'])."-".trim($rowdb21['DECOSUBCODE04'])."-".trim($rowdb21['DECOSUBCODE05'])."-".trim($rowdb21['DECOSUBCODE06'])."-".trim($rowdb21['DECOSUBCODE07'])."-".trim($rowdb21['DECOSUBCODE08']);	
+	$sqlDB23 = " SELECT PRODUCT.LONGDESCRIPTION,PRODUCT.SHORTDESCRIPTION 
+	   FROM DB2ADMIN.PRODUCT PRODUCT WHERE
+       PRODUCT.ITEMTYPECODE='GYR' AND
+	   PRODUCT.SUBCODE01='".trim($rowdb21['DECOSUBCODE01'])."' AND
+       PRODUCT.SUBCODE02='".trim($rowdb21['DECOSUBCODE02'])."' AND
+       PRODUCT.SUBCODE03='".trim($rowdb21['DECOSUBCODE03'])."' AND
+	   PRODUCT.SUBCODE04='".trim($rowdb21['DECOSUBCODE04'])."' AND
+       PRODUCT.SUBCODE05='".trim($rowdb21['DECOSUBCODE05'])."' AND
+	   PRODUCT.SUBCODE06='".trim($rowdb21['DECOSUBCODE06'])."' AND
+	   PRODUCT.SUBCODE07='".trim($rowdb21['DECOSUBCODE07'])."'  ";
+	   $stmt3   = db2_exec($conn1,$sqlDB23, array('cursor'=>DB2_SCROLLABLE));
+	   $rowdb23 = db2_fetch_assoc($stmt3);
+		
+	
+?>
+	  <tr>
+	  <td style="text-align: center"><input type=checkbox name="cek1[<?php echo $no; ?>]" value="<?php echo $no; ?>"></td>
+	  <td style="text-align: center"><?php echo $no; ?></td>
+	  <td style="text-align: center"><?php echo $rowdb21['ITEMTYPECODE'];?></td>
+	  <td style="text-align: left"><?php echo $kd; ?></td>
+      <td style="text-align: left"><?php echo $rowdb23['LONGDESCRIPTION'] ; ?></td>
+      <td style="text-align: center"><?php echo $rowdb21['LOTCODE'];?></td>
+      <td style="text-align: center"><?php echo $rowdb21['SUPPLIERCODE'];?></td>
+      <td style="text-align: right"><?php echo number_format(round($rowdb21['KGS'],2),2);?></td>
+      <td style="text-align: right"><?php echo round($rowdb21['QTY'],0);?></td>
+      <td style="text-align: right"><?php echo round($rowdb21['CONES'],0);?></td>
+      <td style="text-align: center"><?php echo $rowdb21['WHSLOCATIONWAREHOUSEZONECODE'];?></td>
+      <td style="text-align: center"><?php echo $rowdb21['WAREHOUSELOCATIONCODE'];?></td>
+      </tr>
+	  				  
+<?php	$no++;
+		$tKGs += $rowdb21['KGS'];
+		$tQTY += $rowdb21['QTY'];
+		$tCONES += $rowdb21['CONES'];
+	} ?>
+				  </tbody>
+       <tfoot>
+		<tr>
+		  <td style="text-align: left">&nbsp;</td>
+		  <td style="text-align: left">&nbsp;</td>
+		  <td style="text-align: left">&nbsp;</td>
+		  <td style="text-align: left">&nbsp;</td>
+	    <td style="text-align: left">&nbsp;</td>
+	    <td style="text-align: center">&nbsp;</td>
+	    <td style="text-align: right">&nbsp;</td>
+	    <td style="text-align: right"><strong><?php echo number_format(round($tKGs,2),2); ?></strong></td>
+	    <td style="text-align: right"><strong><?php echo number_format($tQTY); ?></strong></td>
+	    <td style="text-align: right"><strong><?php echo number_format($tCONES); ?></strong></td>
+	    <td style="text-align: center">&nbsp;</td>
+	    <td style="text-align: center">&nbsp;</td>
+	    </tr>   
+	   </tfoot>           
+                </table>
+				
+				
+				</div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary btn-sm" name="save">Save</button>			  	
+            </div>
+			</form>	
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+               
+<script>
+  $(function () {	 
+	$('.select2sts').select2({
+    placeholder: "Select a status",
+    allowClear: true
+});   
+  });
+</script>
+<script>
+  $(function () {
+    $("#lookup1").DataTable({
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "excel", "pdf"]
+    }).buttons().container().appendTo('#lookup1_wrapper .col-md-6:eq(0)');	 
+  
+  });
+</script>

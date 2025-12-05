@@ -1,0 +1,1111 @@
+<?php
+$Awal	= isset($_POST['tgl_awal']) ? $_POST['tgl_awal'] : '';
+?>
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <!-- Toastr -->
+<link rel="stylesheet" href="plugins/toastr/toastr.min.css">
+
+<!-- Main content -->
+      <div class="container-fluid">
+		<form role="form" method="post" enctype="multipart/form-data" name="form1">  
+		<div class="card card-success">
+          <div class="card-header">
+            <h3 class="card-title">Filter Tgl Tutup In-Out Benang</h3>
+
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+              <button type="button" class="btn btn-tool" data-card-widget="remove">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <!-- /.card-header -->		  
+          <div class="card-body">
+			 <div class="alert alert-primary alert-dismissible">
+                  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                  <h5><i class="icon fas fa-info"></i> Note!</h5>
+                  * Tutup Transaksi Membutuhkan Waktu, Harap Tunggu...<br>
+** Jangan di Tutup Sebelum Selesai.<br> 
+                *** Bisa tutup Mulai jam 22:00 sampai jam 24:00 
+                </div> 
+             <div class="form-group row">
+               <label for="tgl_awal" class="col-md-1">Tgl Tutup</label>
+               <div class="col-md-2">  
+                 <div class="input-group date" id="datepicker1" data-target-input="nearest">
+                    <div class="input-group-prepend" data-target="#datepicker1" data-toggle="datetimepicker">
+                      <span class="input-group-text btn-info">
+                        <i class="far fa-calendar-alt"></i>
+                      </span>
+                    </div>
+                    <input name="tgl_awal" value="<?php echo $Awal;?>" type="text" class="form-control form-control-sm" id=""  autocomplete="off" required>
+                 </div>
+			   </div>
+			   	 
+            </div>	  	 
+			  
+          </div>	
+		  <div class="card-footer">
+			<button class="btn btn-info" type="submit" name="submit">Submit</button>
+		</div>	
+		  <!-- /.card-body -->          
+        </div>  
+		<div class="row">
+			<div class="col-md-6">	
+		<div class="card card-success">
+              <div class="card-header">
+                <h3 class="card-title">Detail Data Masuk Benang Perhari</h3>				 
+          </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="example1" class="table table-sm table-bordered table-striped" style="font-size: 14px; text-align: center;">
+                  <thead>
+                  <tr>
+                    <th valign="middle" style="text-align: center">No</th>
+                    <th valign="middle" style="text-align: center">Detail</th>
+                    <th valign="middle" style="text-align: center">Tgl Tutup</th>
+                    <th valign="middle" style="text-align: center">Rol</th>
+                    <th valign="middle" style="text-align: center">KG</th>
+                    <th valign="middle" style="text-align: center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+<?php	 
+$no=1;   
+$c=0;				  
+$sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DATE_FORMAT(now(),'%Y-%m-%d') as tgl FROM tblmasukbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 30");		  
+    while($r = mysqli_fetch_array($sql)){
+		
+?>
+	  <tr>
+	  <td style="text-align: center"><?php echo $no;?></td>
+	  <td style="text-align: center"><a href="DetailInHarian-<?php echo $r['tgl_tutup'];?>" class="btn btn-info btn-xs" target="_blank"> <i class="fa fa-link"></i> Lihat Data</a></td>
+	  <td style="text-align: center"><?php echo $r['tgl_tutup'];?></td>
+      <td style="text-align: center"><?php echo $r['rol'];?></td>
+      <td style="text-align: right"><?php echo number_format(round($r['kg'],2),2);?></td>
+      <td style="text-align: center"><a href="#" class="btn btn-xs btn-danger <?php if($r['tgl']==$r['tgl_tutup']){ }else{/*echo"disabled";*/} ?>" onclick="confirm_deleteIn('DelInHarian-<?php echo $r['tgl_tutup']; ?>');" ><small class="fas fa-trash"> </small> Hapus</a></td>
+      </tr>
+	  				  
+	<?php 
+	 $no++; 
+	
+	} ?>
+				  </tbody>
+                  <tfoot>				
+				  </tfoot>
+                </table>
+              </div>
+              <!-- /.card-body -->
+          </div>
+			</div>
+			<div class="col-md-6">
+		<div class="card card-danger">
+              <div class="card-header">
+                <h3 class="card-title">Detail Data Keluar Benang Perhari</h3>				 
+          </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="example3" class="table table-sm table-bordered table-striped" style="font-size: 14px; text-align: center;">
+                  <thead>
+                  <tr>
+                    <th valign="middle" style="text-align: center">No</th>
+                    <th valign="middle" style="text-align: center">Detail</th>
+                    <th valign="middle" style="text-align: center">Tgl Tutup</th>
+                    <th valign="middle" style="text-align: center">Rol</th>
+                    <th valign="middle" style="text-align: center">KG</th>
+                    <th valign="middle" style="text-align: center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+<?php	 
+$no=1;   
+$c=0;				  
+$sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DATE_FORMAT(now(),'%Y-%m-%d') as tgl FROM tblkeluarbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 30");		  
+    while($r = mysqli_fetch_array($sql)){
+		
+?>
+	  <tr>
+	  <td style="text-align: center"><?php echo $no;?></td>
+	  <td style="text-align: center"><a href="DetailOutHarian-<?php echo $r['tgl_tutup'];?>" class="btn btn-info btn-xs" target="_blank"> <i class="fa fa-link"></i> Lihat Data</a></td>
+	  <td style="text-align: center"><?php echo $r['tgl_tutup'];?></td>
+      <td style="text-align: center"><?php echo $r['rol'];?></td>
+      <td style="text-align: right"><?php echo number_format(round($r['kg'],2),2);?></td>
+      <td style="text-align: center"><a href="#" class="btn btn-xs btn-danger <?php if($r['tgl']==$r['tgl_tutup']){ }else{/*echo"disabled"; */} ?>" onclick="confirm_deleteOut('DelOutHarian-<?php echo $r['tgl_tutup']; ?>');" ><small class="fas fa-trash"> </small> Hapus</a></td>
+      </tr>
+	  				  
+	<?php 
+	 $no++; 
+	
+	} ?>
+				  </tbody>
+                  <tfoot>				
+					</tfoot>
+                </table>
+              </div>
+              <!-- /.card-body -->
+            </div>  
+			</div>	
+		</div>
+				</form>		
+      </div><!-- /.container-fluid -->
+    <!-- /.content -->
+<div class="modal fade" id="delInHarian" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content" style="margin-top:100px;">
+                  <div class="modal-header">
+					<h4 class="modal-title">INFOMATION IN</h4>  
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    
+                  </div>
+					<div class="modal-body">
+						<h5 class="modal-title" style="text-align:center;">Are you sure to delete this information ?</h5>
+					</div>	
+                  <div class="modal-footer justify-content-between">
+                    <a href="#" class="btn btn-danger" id="delete_In">Delete</a>
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+<div class="modal fade" id="delOutHarian" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content" style="margin-top:100px;">
+                  <div class="modal-header">
+					<h4 class="modal-title">INFOMATION OUT</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    
+                  </div>
+					<div class="modal-body">
+						<h5 class="modal-title" style="text-align:center;">Are you sure to delete this information ?</h5>
+					</div>	
+                  <div class="modal-footer justify-content-between">
+                    <a href="#" class="btn btn-danger" id="delete_Out">Delete</a>
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="plugins/sweetalert2/sweetalert2.min.js"></script>
+<!-- Toastr -->
+<script src="plugins/toastr/toastr.min.js"></script>	
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+
+<script>
+	$(function () {
+		//Datepicker
+    $('#datepicker').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+    $('#datepicker1').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+    $('#datepicker2').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+	
+});		
+</script>
+<script type="text/javascript">
+              function confirm_deleteIn(delete_url) {
+                $('#delInHarian').modal('show', {
+                  backdrop: 'static'
+                });
+                document.getElementById('delete_In').setAttribute('href', delete_url);
+              }
+			  function confirm_deleteOut(delete_url) {
+                $('#delOutHarian').modal('show', {
+                  backdrop: 'static'
+                });
+                document.getElementById('delete_Out').setAttribute('href', delete_url);
+              }
+</script>
+<?php	
+if(isset($_POST['submit'])){
+
+$cektgl=mysqli_query($con,"SELECT DATE_FORMAT(NOW(),'%Y-%m-%d') as tgl,COUNT(tgl_tutup) as ck ,DATE_FORMAT(NOW(),'%H') as jam,DATE_FORMAT(NOW(),'%H:%i') as jam1 FROM tblmasukbenang WHERE tgl_tutup='".$Awal."' LIMIT 1");
+$dcek=mysqli_fetch_array($cektgl);
+$t1=strtotime($Awal);
+$t2=strtotime($dcek['tgl']);
+$selh=round(abs($t2-$t1)/(60*60*45));
+
+if($dcek['ck']>0){	
+		echo "<script>
+  	$(function() {
+    toastr.error('Stok Tgl ".$Awal." Ini Sudah Pernah ditutup')
+  });
+  
+</script>";
+	/*}else if($Awal > $dcek['tgl']){
+		echo "<script>
+  	$(function() {
+    toastr.error('Tanggal Lebih dari $selh hari')
+  });
+  
+</script>";*/
+		
+	}else if($dcek['jam'] < 6){		
+		echo "<script>
+  		$(function() {
+    		toastr.error('Tidak Bisa Tutup Sebelum jam 10 Malam Sampai jam 12 Malam, Sekarang Masih Jam ".$dcek['jam1']."')
+  		});  
+  		</script>";
+			}
+			else{	
+	
+	//Masuk Benang Supplier
+	$sqlDB21M = " SELECT
+	x.TRANSACTIONNUMBER,
+	x.DECOSUBCODE01,
+	x.DECOSUBCODE02,
+	x.DECOSUBCODE03,
+	x.DECOSUBCODE04,
+	x.DECOSUBCODE05,
+	x.DECOSUBCODE06,
+	x.DECOSUBCODE07,
+	x.DECOSUBCODE08,
+	x.DECOSUBCODE09,
+	x.DECOSUBCODE10,
+	x.ITEMDESCRIPTION,
+	x.USERPRIMARYUOMCODE,
+	f.SUMMARIZEDDESCRIPTION,
+	COUNT(x.ITEMELEMENTCODE) AS QTY_DUS,
+	SUM(x.BASEPRIMARYQUANTITY) AS QTY_KG,
+	b.LEGALNAME1,
+	SUM(x.BASESECONDARYQUANTITY) AS QTY_CONES,
+	x.TRANSACTIONDATE,
+	m.CHALLANDATE,
+	x.TOKENCODE,
+	x.ORDERCOUNTERCODE,
+	x.ORDERCODE,
+	x.ORDERLINE,
+	x.LOTCODE,
+	m.CHALLANNO,
+	CASE
+		WHEN NOT bc.WHSLOCATIONWAREHOUSEZONECODE = '' THEN bc.WHSLOCATIONWAREHOUSEZONECODE
+		ELSE x.WHSLOCATIONWAREHOUSEZONECODE
+	END AS WHSLOCATIONWAREHOUSEZONECODE,
+	CASE
+		WHEN NOT bc.WAREHOUSELOCATIONCODE = '' THEN bc.WAREHOUSELOCATIONCODE
+		ELSE x.WAREHOUSELOCATIONCODE
+	END AS WAREHOUSELOCATIONCODE
+FROM
+	DB2ADMIN.STOCKTRANSACTION x
+LEFT OUTER JOIN DB2ADMIN.MRNDETAIL m2 ON
+	m2.TRANSACTIONNUMBER = x.TRANSACTIONNUMBER
+LEFT OUTER JOIN DB2ADMIN.MRNHEADER m ON
+	m.CODE = m2.MRNHEADERCODE
+LEFT OUTER JOIN DB2ADMIN.CUSTOMERSUPPLIERDATA n ON
+	x.SUPPLIERCODE = n.CODE
+LEFT OUTER JOIN DB2ADMIN.BUSINESSPARTNER b ON
+	b.NUMBERID = n.BUSINESSPARTNERNUMBERID
+LEFT OUTER JOIN DB2ADMIN.FULLITEMKEYDECODER f ON
+	x.FULLITEMIDENTIFIER = f.IDENTIFIER
+LEFT OUTER JOIN DB2ADMIN.BALANCE bc ON
+	bc.ELEMENTSCODE = x.ITEMELEMENTCODE
+WHERE
+	m.CHALLANDATE = '$Awal'
+	AND (ORDERCOUNTERCODE = 'POYRL'
+		OR ORDERCOUNTERCODE = 'POYRI')
+	AND x.TOKENCODE = 'RECEIPT'
+GROUP BY
+	x.TRANSACTIONNUMBER,
+	x.DECOSUBCODE01,
+	x.DECOSUBCODE02,
+	x.DECOSUBCODE03,
+	x.DECOSUBCODE04,
+	x.DECOSUBCODE05,
+	x.DECOSUBCODE06,
+	x.DECOSUBCODE07,
+	x.DECOSUBCODE08,
+	x.DECOSUBCODE09,
+	x.DECOSUBCODE10,
+	x.ITEMDESCRIPTION,
+	x.USERPRIMARYUOMCODE,
+	f.SUMMARIZEDDESCRIPTION,
+	x.TRANSACTIONDATE,
+	x.TOKENCODE,
+	x.ORDERCOUNTERCODE,
+	x.LOTCODE,
+	m.CHALLANNO,
+	m.CHALLANDATE ,
+	b.LEGALNAME1,
+	x.ORDERLINE,
+	x.ORDERCODE,
+	bc.WHSLOCATIONWAREHOUSEZONECODE,
+	bc.WAREHOUSELOCATIONCODE,
+	x.WHSLOCATIONWAREHOUSEZONECODE,
+	x.WAREHOUSELOCATIONCODE
+ORDER BY
+	x.TRANSACTIONNUMBER ASC";
+
+  $stmt1M   = db2_exec($conn1,$sqlDB21M, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21M = db2_fetch_assoc($stmt1M)){ 
+
+      // $cd=trim($rowdb21['SUBCODE01'])."-".trim($rowdb21['SUBCODE02'])."-".trim($rowdb21['SUBCODE03'])."-".trim($rowdb21['SUBCODE04'])."-".trim($rowdb21['SUBCODE05'])."-".trim($rowdb21['SUBCODE06'])."-".trim($rowdb21['SUBCODE07'])."-".trim($rowdb21['SUBCODE08'])."-".trim($rowdb21['SUBCODE09'])."-".trim($rowdb21['SUBCODE10']);		
+      
+  $cd = trim($rowdb21M['DECOSUBCODE01'])."-".trim($rowdb21M['DECOSUBCODE02'])."-"
+        .trim($rowdb21M['DECOSUBCODE03'])."-".trim($rowdb21M['DECOSUBCODE04'])."-"
+        .trim($rowdb21M['DECOSUBCODE05'])."-".trim($rowdb21M['DECOSUBCODE06'])."-"
+        .trim($rowdb21M['DECOSUBCODE07'])."-".trim($rowdb21M['DECOSUBCODE08'])."-"
+        .trim($rowdb21M['DECOSUBCODE09'])."-".trim($rowdb21M['DECOSUBCODE10']);	
+      
+    if ($rowdb21M['DESTINATIONWAREHOUSECODE'] =='M904') { $knittM = 'KNITTING ITTI ATAS- BENANG'; }
+    else if($rowdb21M['DESTINATIONWAREHOUSECODE'] ='P501') { $knittM = 'KNITTING ITTI- BENANG'; }
+    else if($rowdb21M['DESTINATIONWAREHOUSECODE'] ='M051') { $knittM =  'KNITTING A- BENANG'; }
+    else if($rowdb21M['DESTINATIONWAREHOUSECODE'] ='P503') { $knittM =  'YARN DYE'; } 
+	
+	$simpanM=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
+tgl_masuk	= '".$rowdb21M['MRNDATE']."',
+po_rmp	= '".$rowdb21M['ORDERCODE']."-".$rowdb21M['ORDERLINE']."',
+sj_no	= '".$rowdb21M['CHALLANNO']."',
+tipe	= 'GYR',
+kode	= '".$cd."',
+supplier= '".$rowdb21M['LEGALNAME1']."',
+jenis_benang= '".str_replace("'","''",$rowdb21M['SUMMARIZEDDESCRIPTION'])."',
+lot		= '".$rowdb21M['LOTCODE']."',
+blok	= '".$rowdb21M['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21M['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21M['QTY_DUS']."',
+cones	= '".$rowdb21M['QTY_CONES']."',
+berat	= '".round($rowdb21M['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN MASUK BENANG");		
+	
+
+}
+	//Retur Masuk Benang				
+	$sqlDB21RM = " SELECT
+	INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+	INTERNALDOCUMENTLINE.ORDERLINE,
+	INTERNALDOCUMENTLINE.EXTERNALREFERENCE,
+	INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+	INTERNALDOCUMENTLINE.WAREHOUSECODE,
+	STOCKTRANSACTION.LOTCODE,
+	LOT.SUPPLIERCODE,
+	BUSINESSPARTNER.LEGALNAME1,
+	STOCKTRANSACTION.TRANSACTIONDATE,
+	SUM(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_KG,
+	COUNT(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_ROL,
+	SUM(STOCKTRANSACTION.BASESECONDARYQUANTITY) AS QTY_CONES,
+	INTERNALDOCUMENTLINE.SUBCODE01,
+	INTERNALDOCUMENTLINE.SUBCODE02,
+	INTERNALDOCUMENTLINE.SUBCODE03,
+	INTERNALDOCUMENTLINE.SUBCODE04,
+	INTERNALDOCUMENTLINE.SUBCODE05,
+	INTERNALDOCUMENTLINE.SUBCODE06,
+	INTERNALDOCUMENTLINE.SUBCODE07,
+	INTERNALDOCUMENTLINE.SUBCODE08,
+	STOCKTRANSACTION.CREATIONUSER,
+	STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+	STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+	STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+	FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION
+FROM
+	DB2ADMIN.STOCKTRANSACTION STOCKTRANSACTION
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENTLINE INTERNALDOCUMENTLINE ON
+	INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE = STOCKTRANSACTION.ORDERCODE
+	AND 
+INTERNALDOCUMENTLINE.ORDERLINE = STOCKTRANSACTION.ORDERLINE
+    AND INTERNALDOCUMENTLINE.ITEMTYPEAFICODE = STOCKTRANSACTION.ITEMTYPECODE
+	AND INTERNALDOCUMENTLINE.INTDOCPROVISIONALCOUNTERCODE = STOCKTRANSACTION.ORDERCOUNTERCODE
+	AND INTERNALDOCUMENTLINE.SUBCODE01  = STOCKTRANSACTION.DECOSUBCODE01
+	AND INTERNALDOCUMENTLINE.SUBCODE02  = STOCKTRANSACTION.DECOSUBCODE02
+	AND INTERNALDOCUMENTLINE.SUBCODE03  = STOCKTRANSACTION.DECOSUBCODE03
+	AND INTERNALDOCUMENTLINE.SUBCODE04  = STOCKTRANSACTION.DECOSUBCODE04
+	AND INTERNALDOCUMENTLINE.SUBCODE05  = STOCKTRANSACTION.DECOSUBCODE05
+	AND INTERNALDOCUMENTLINE.SUBCODE06  = STOCKTRANSACTION.DECOSUBCODE06
+	AND INTERNALDOCUMENTLINE.SUBCODE07  = STOCKTRANSACTION.DECOSUBCODE07
+	AND INTERNALDOCUMENTLINE.SUBCODE08  = STOCKTRANSACTION.DECOSUBCODE08
+LEFT OUTER JOIN DB2ADMIN.FULLITEMKEYDECODER FULLITEMKEYDECODER ON
+	STOCKTRANSACTION.FULLITEMIDENTIFIER = FULLITEMKEYDECODER.IDENTIFIER
+LEFT OUTER JOIN LOT ON
+	STOCKTRANSACTION.LOTCODE = LOT.CODE
+	AND LOT.COMPANYCODE = '100'
+	AND 
+STOCKTRANSACTION.ITEMTYPECODE = LOT.ITEMTYPECODE
+	AND
+STOCKTRANSACTION.DECOSUBCODE01 = LOT.DECOSUBCODE01
+	AND
+STOCKTRANSACTION.DECOSUBCODE02 = LOT.DECOSUBCODE02
+	AND
+STOCKTRANSACTION.DECOSUBCODE03 = LOT.DECOSUBCODE03
+	AND
+STOCKTRANSACTION.DECOSUBCODE04 = LOT.DECOSUBCODE04
+	AND
+STOCKTRANSACTION.DECOSUBCODE05 = LOT.DECOSUBCODE05
+	AND
+STOCKTRANSACTION.DECOSUBCODE06 = LOT.DECOSUBCODE06
+	AND
+STOCKTRANSACTION.DECOSUBCODE07 = LOT.DECOSUBCODE07
+	AND
+STOCKTRANSACTION.DECOSUBCODE08 = LOT.DECOSUBCODE08
+LEFT OUTER JOIN CUSTOMERSUPPLIERDATA ON
+	LOT.SUPPLIERCODE = CUSTOMERSUPPLIERDATA.CODE
+	AND CUSTOMERSUPPLIERDATA.COMPANYCODE = '100'
+	AND CUSTOMERSUPPLIERDATA.TYPE = '2'
+LEFT OUTER JOIN BUSINESSPARTNER ON
+	CUSTOMERSUPPLIERDATA.BUSINESSPARTNERNUMBERID = BUSINESSPARTNER.NUMBERID
+WHERE
+	(INTERNALDOCUMENTLINE.EXTERNALREFERENCE = 'RETUR'
+		OR INTERNALDOCUMENTLINE.EXTERNALREFERENCE = 'RETURAN')
+	AND STOCKTRANSACTION.LOGICALWAREHOUSECODE = 'M011'
+	AND INTERNALDOCUMENTLINE.ITEMTYPEAFICODE = 'GYR'
+	AND STOCKTRANSACTION.TRANSACTIONDATE = '$Awal'
+	AND NOT INTERNALDOCUMENTLINE.ORDERLINE IS NULL
+GROUP BY
+	STOCKTRANSACTION.LOTCODE,
+	INTERNALDOCUMENTLINE.WAREHOUSECODE,
+	INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+	INTERNALDOCUMENTLINE.EXTERNALREFERENCE,
+	INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+	INTERNALDOCUMENTLINE.ORDERLINE,
+	INTERNALDOCUMENTLINE.SUBCODE01,
+	INTERNALDOCUMENTLINE.SUBCODE02,
+	INTERNALDOCUMENTLINE.SUBCODE03,
+	INTERNALDOCUMENTLINE.SUBCODE04,
+	INTERNALDOCUMENTLINE.SUBCODE05,
+	INTERNALDOCUMENTLINE.SUBCODE06,
+	INTERNALDOCUMENTLINE.SUBCODE07,
+	INTERNALDOCUMENTLINE.SUBCODE08,
+	LOT.SUPPLIERCODE,
+	BUSINESSPARTNER.LEGALNAME1,
+	STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+	STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+	STOCKTRANSACTION.TRANSACTIONDATE,
+	STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+	STOCKTRANSACTION.CREATIONUSER,
+	FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION ";
+	$stmt1RM   = db2_exec($conn1,$sqlDB21RM, array('cursor'=>DB2_SCROLLABLE));		
+	$knittRM="";				  
+    while($rowdb21RM = db2_fetch_assoc($stmt1RM)){ 
+$bonRM=$rowdb21RM['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RM['ORDERLINE'];		
+if (trim($rowdb21RM['WAREHOUSECODE']) =="M904") { $knittRM = 'LT2'; }
+else if(trim($rowdb21RM['WAREHOUSECODE']) =="P501"){ $knittRM = 'LT1'; }
+else if(trim($rowdb21RM['WAREHOUSECODE']) =="P503"){ $knittRM = 'YND'; }
+		
+$simpanRM=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
+tgl_masuk	= '".$rowdb21RM['TRANSACTIONDATE']."',
+po_rmp	= '".$rowdb21RM['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RM['ORDERLINE']."',
+no_po	= '".$rowdb21RM['EXTERNALREFERENCE']."',
+kode	= '".str_replace("'","''",$rowdb21RM['ITEMDESCRIPTION'])."',
+tipe	= 'GYR',
+jenis_benang= '".str_replace("'","''",$rowdb21RM['SUMMARIZEDDESCRIPTION'])."',
+lot		= '".$rowdb21RM['LOTCODE']."',
+blok	= '".$rowdb21RM['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RM['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21RM['QTY_ROL']."',
+cones	= '".$rowdb21RM['QTY_CONES']."',
+berat	= '".round($rowdb21RM['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN RETUR MASUK BENANG");			
+		
+	}
+
+//Retur Masuk Benang DYR				
+	$sqlDB21RMY = " SELECT 
+INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+INTERNALDOCUMENTLINE.ORDERLINE,
+INTERNALDOCUMENTLINE.EXTERNALREFERENCE,
+INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+INTERNALDOCUMENTLINE.WAREHOUSECODE,
+STOCKTRANSACTION.LOTCODE,  
+LOT.SUPPLIERCODE, 
+BUSINESSPARTNER.LEGALNAME1,
+STOCKTRANSACTION.TRANSACTIONDATE,
+SUM(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_KG,
+COUNT(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_ROL,
+SUM(STOCKTRANSACTION.BASESECONDARYQUANTITY) AS QTY_CONES,
+INTERNALDOCUMENTLINE.SUBCODE01,
+INTERNALDOCUMENTLINE.SUBCODE02,
+INTERNALDOCUMENTLINE.SUBCODE03,
+INTERNALDOCUMENTLINE.SUBCODE04,
+INTERNALDOCUMENTLINE.SUBCODE05,
+INTERNALDOCUMENTLINE.SUBCODE06,
+INTERNALDOCUMENTLINE.SUBCODE07,
+INTERNALDOCUMENTLINE.SUBCODE08,
+STOCKTRANSACTION.CREATIONUSER,
+STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION
+FROM DB2ADMIN.STOCKTRANSACTION STOCKTRANSACTION 
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENTLINE INTERNALDOCUMENTLINE ON INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE=STOCKTRANSACTION.ORDERCODE AND 
+INTERNALDOCUMENTLINE.ORDERLINE=STOCKTRANSACTION.ORDERLINE 
+AND INTERNALDOCUMENTLINE.ITEMTYPEAFICODE = STOCKTRANSACTION.ITEMTYPECODE
+AND INTERNALDOCUMENTLINE.INTDOCPROVISIONALCOUNTERCODE = STOCKTRANSACTION.ORDERCOUNTERCODE
+	AND INTERNALDOCUMENTLINE.SUBCODE01  = STOCKTRANSACTION.DECOSUBCODE01
+	AND INTERNALDOCUMENTLINE.SUBCODE02  = STOCKTRANSACTION.DECOSUBCODE02
+	AND INTERNALDOCUMENTLINE.SUBCODE03  = STOCKTRANSACTION.DECOSUBCODE03
+	AND INTERNALDOCUMENTLINE.SUBCODE04  = STOCKTRANSACTION.DECOSUBCODE04
+	AND INTERNALDOCUMENTLINE.SUBCODE05  = STOCKTRANSACTION.DECOSUBCODE05
+	AND INTERNALDOCUMENTLINE.SUBCODE06  = STOCKTRANSACTION.DECOSUBCODE06
+	AND INTERNALDOCUMENTLINE.SUBCODE07  = STOCKTRANSACTION.DECOSUBCODE07
+	AND INTERNALDOCUMENTLINE.SUBCODE08  = STOCKTRANSACTION.DECOSUBCODE08
+LEFT OUTER JOIN DB2ADMIN.FULLITEMKEYDECODER FULLITEMKEYDECODER ON
+STOCKTRANSACTION.FULLITEMIDENTIFIER = FULLITEMKEYDECODER.IDENTIFIER
+LEFT OUTER JOIN LOT  ON STOCKTRANSACTION.LOTCODE = LOT.CODE AND LOT.COMPANYCODE = '100' AND 
+STOCKTRANSACTION.ITEMTYPECODE = LOT.ITEMTYPECODE AND
+STOCKTRANSACTION.DECOSUBCODE01= LOT.DECOSUBCODE01 AND
+STOCKTRANSACTION.DECOSUBCODE02= LOT.DECOSUBCODE02 AND
+STOCKTRANSACTION.DECOSUBCODE03= LOT.DECOSUBCODE03 AND
+STOCKTRANSACTION.DECOSUBCODE04= LOT.DECOSUBCODE04 AND
+STOCKTRANSACTION.DECOSUBCODE05= LOT.DECOSUBCODE05 AND
+STOCKTRANSACTION.DECOSUBCODE06= LOT.DECOSUBCODE06 AND
+STOCKTRANSACTION.DECOSUBCODE07= LOT.DECOSUBCODE07 AND
+STOCKTRANSACTION.DECOSUBCODE08= LOT.DECOSUBCODE08
+LEFT OUTER JOIN CUSTOMERSUPPLIERDATA  ON LOT.SUPPLIERCODE =CUSTOMERSUPPLIERDATA.CODE AND CUSTOMERSUPPLIERDATA.COMPANYCODE = '100' AND CUSTOMERSUPPLIERDATA.TYPE = '2'
+LEFT OUTER JOIN BUSINESSPARTNER ON CUSTOMERSUPPLIERDATA.BUSINESSPARTNERNUMBERID =BUSINESSPARTNER.NUMBERID
+WHERE (INTERNALDOCUMENTLINE.EXTERNALREFERENCE='RETUR' OR INTERNALDOCUMENTLINE.EXTERNALREFERENCE='RETURAN') AND STOCKTRANSACTION.LOGICALWAREHOUSECODE ='M011' AND INTERNALDOCUMENTLINE.ITEMTYPEAFICODE='DYR' AND
+STOCKTRANSACTION.TRANSACTIONDATE = '$Awal' AND NOT INTERNALDOCUMENTLINE.ORDERLINE IS NULL
+GROUP BY
+STOCKTRANSACTION.LOTCODE,
+INTERNALDOCUMENTLINE.WAREHOUSECODE,
+INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+INTERNALDOCUMENTLINE.EXTERNALREFERENCE,
+INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+INTERNALDOCUMENTLINE.ORDERLINE,
+INTERNALDOCUMENTLINE.SUBCODE01,
+INTERNALDOCUMENTLINE.SUBCODE02,
+INTERNALDOCUMENTLINE.SUBCODE03,
+INTERNALDOCUMENTLINE.SUBCODE04,
+INTERNALDOCUMENTLINE.SUBCODE05,
+INTERNALDOCUMENTLINE.SUBCODE06,
+INTERNALDOCUMENTLINE.SUBCODE07,
+INTERNALDOCUMENTLINE.SUBCODE08,
+LOT.SUPPLIERCODE,
+BUSINESSPARTNER.LEGALNAME1,
+STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+STOCKTRANSACTION.TRANSACTIONDATE,
+STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+STOCKTRANSACTION.CREATIONUSER,
+FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION ";
+	$stmt1RMY   = db2_exec($conn1,$sqlDB21RMY, array('cursor'=>DB2_SCROLLABLE));		
+	$knittRMY="";				  
+    while($rowdb21RMY = db2_fetch_assoc($stmt1RMY)){ 
+$bonRMY=$rowdb21RMY['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RMY['ORDERLINE'];		
+if (trim($rowdb21RMY['WAREHOUSECODE']) =="M904") { $knittRMY = 'LT2'; }
+else if(trim($rowdb21RMY['WAREHOUSECODE']) =="P501"){ $knittRMY = 'LT1'; }
+else if(trim($rowdb21RMY['WAREHOUSECODE']) =="P503"){ $knittRMY = 'YND'; }
+		
+$simpanRMY=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
+tgl_masuk	= '".$rowdb21RMY['TRANSACTIONDATE']."',
+po_rmp	= '".$rowdb21RMY['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RMY['ORDERLINE']."',
+no_po	= '".$rowdb21RMY['EXTERNALREFERENCE']."',
+kode	= '".str_replace("'","''",$rowdb21RMY['ITEMDESCRIPTION'])."',
+tipe	= 'DYR',
+jenis_benang= '".str_replace("'","''",$rowdb21RMY['SUMMARIZEDDESCRIPTION'])."',
+lot		= '".$rowdb21RMY['LOTCODE']."',
+blok	= '".$rowdb21RMY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RMY['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21RMY['QTY_ROL']."',
+cones	= '".$rowdb21RMY['QTY_CONES']."',
+berat	= '".round($rowdb21RMY['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN RETUR MASUK BENANG DYR");			
+		
+	}				
+ // Keluar Benang Prod.
+$sqlDB21K = "SELECT 
+x.INTDOCUMENTPROVISIONALCODE,
+x.ORDERLINE,
+x.EXTERNALREFERENCE,
+x.ITEMDESCRIPTION,
+s.LOTCODE,
+SUM(s.BASEPRIMARYQUANTITY) AS QTY_KG,
+COUNT(s.BASEPRIMARYQUANTITY) AS QTY_ROL,
+SUM(s.BASESECONDARYQUANTITY) AS QTY_CONES,
+x.SUBCODE01,
+x.SUBCODE02,
+x.SUBCODE03,
+x.SUBCODE04,
+x.SUBCODE05,
+x.SUBCODE06,
+x.SUBCODE07,
+x.SUBCODE08,
+x.CONDITIONRETRIEVINGDATE, 
+s.TRANSACTIONDATE,
+s.CREATIONUSER,
+s.LOGICALWAREHOUSECODE,
+s.WHSLOCATIONWAREHOUSEZONECODE,
+s.WAREHOUSELOCATIONCODE,
+a.VALUESTRING AS SUPPLIER,
+f.SUMMARIZEDDESCRIPTION
+FROM DB2ADMIN.INTERNALDOCUMENTLINE x
+LEFT OUTER JOIN STOCKTRANSACTION s ON x.INTDOCUMENTPROVISIONALCODE=s.ORDERCODE AND 
+x.ORDERLINE=s.ORDERLINE 
+LEFT OUTER JOIN FULLITEMKEYDECODER f ON
+s.FULLITEMIDENTIFIER = f.IDENTIFIER
+LEFT OUTER JOIN ADSTORAGE a ON a.UNIQUEID =x.ABSUNIQUEID AND a.NAMENAME ='SuppName'
+WHERE 
+x.CONDITIONRETRIEVINGDATE = '$Awal' AND 
+x.ITEMTYPEAFICODE ='GYR' AND
+s.LOGICALWAREHOUSECODE='M011' AND 
+NOT x.EXTERNALREFERENCE LIKE '%RETUR%' AND 
+NOT x.ORDERLINE IS NULL
+GROUP BY 
+x.INTDOCUMENTPROVISIONALCODE,
+x.ORDERLINE,
+x.EXTERNALREFERENCE,
+x.ITEMDESCRIPTION,
+s.LOTCODE,
+x.SUBCODE01,
+x.SUBCODE02,
+x.SUBCODE03,
+x.SUBCODE04,
+x.SUBCODE05,
+x.SUBCODE06,
+x.SUBCODE07,
+x.SUBCODE08,
+x.CONDITIONRETRIEVINGDATE, 
+s.TRANSACTIONDATE,
+s.CREATIONUSER,
+s.LOGICALWAREHOUSECODE,
+s.WHSLOCATIONWAREHOUSEZONECODE,
+s.WAREHOUSELOCATIONCODE,
+f.SUMMARIZEDDESCRIPTION,
+a.VALUESTRING ";
+	$stmt1K   = db2_exec($conn1,$sqlDB21K, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21K = db2_fetch_assoc($stmt1K)){ 
+      $bonK=trim($rowdb21K['INTDOCUMENTPROVISIONALCODE'])."-".trim($rowdb21K['ORDERLINE']);		
+      if ($rowdb21K['DESTINATIONWAREHOUSECODE'] =='M501' or $rowdb21K['DESTINATIONWAREHOUSECODE'] =='M904') { $knittK = 'KNITTING ITTI ATAS- BENANG'; }
+      else if($rowdb21K['DESTINATIONWAREHOUSECODE'] ='P501'){ $knittK = 'KNITTING ITTI- BENANG'; }
+      else if($rowdb21K['DESTINATIONWAREHOUSECODE'] ='M051') { $knittK =  'KNITTING A- BENANG'; }
+      else if($rowdb21K['DESTINATIONWAREHOUSECODE'] ='P503') { $knittK =  'YARN DYE'; } 
+	  $kdbenangK=trim($rowdb21K['SUBCODE01'])." ".trim($rowdb21K['SUBCODE02'])." ".trim($rowdb21K['SUBCODE03'])." ".trim($rowdb21K['SUBCODE04'])." ".trim($rowdb21K['SUBCODE05'])." ".trim($rowdb21K['SUBCODE06'])." ".trim($rowdb21K['SUBCODE07'])." ".trim($rowdb21K['SUBCODE08']);	
+
+		$simpanK=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
+tgl_keluar	= '".$rowdb21K['TRANSACTIONDATE']."',
+no_bon 	= '".$bonK."',
+knitt 	= '".$knittK."',
+no_po 	= '".$rowdb21K['EXTERNALREFERENCE']."',
+itemdesc= '".str_replace("'","''",$rowdb21K['ITEMDESCRIPTION'])."',
+supplier= '".$rowdb21K['SUPPLIER']."',
+kode 	= '".$kdbenangK."',
+tipe	= 'GYR',
+jenis_benang= '".str_replace("'","''",$rowdb21K['SUMMARIZEDDESCRIPTION'])."',
+lot 	= '".$rowdb21K['LOTCODE']."',
+blok 	= '".$rowdb21K['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21K['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21K['QTY_ROL']."',
+cones	= '".$rowdb21K['QTY_CONES']."',
+berat	= '".round($rowdb21K['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN KELUAR BENANG");			
+
+		
+	}
+ // Keluar Benang Prod. DYR
+$sqlDB21KY = "SELECT 
+x.INTDOCUMENTPROVISIONALCODE,
+x.ORDERLINE,
+x.EXTERNALREFERENCE,
+x.ITEMDESCRIPTION,
+s.LOTCODE,
+SUM(s.BASEPRIMARYQUANTITY) AS QTY_KG,
+COUNT(s.BASEPRIMARYQUANTITY) AS QTY_ROL,
+SUM(s.BASESECONDARYQUANTITY) AS QTY_CONES,
+x.SUBCODE01,
+x.SUBCODE02,
+x.SUBCODE03,
+x.SUBCODE04,
+x.SUBCODE05,
+x.SUBCODE06,
+x.SUBCODE07,
+x.SUBCODE08,
+x.CONDITIONRETRIEVINGDATE, 
+s.TRANSACTIONDATE,
+s.CREATIONUSER,
+s.LOGICALWAREHOUSECODE,
+s.WHSLOCATIONWAREHOUSEZONECODE,
+s.WAREHOUSELOCATIONCODE,
+a.VALUESTRING AS SUPPLIER,
+f.SUMMARIZEDDESCRIPTION
+FROM DB2ADMIN.INTERNALDOCUMENTLINE x
+LEFT OUTER JOIN STOCKTRANSACTION s ON x.INTDOCUMENTPROVISIONALCODE=s.ORDERCODE AND 
+x.ORDERLINE=s.ORDERLINE 
+LEFT OUTER JOIN FULLITEMKEYDECODER f ON
+s.FULLITEMIDENTIFIER = f.IDENTIFIER
+LEFT OUTER JOIN ADSTORAGE a ON a.UNIQUEID =x.ABSUNIQUEID AND a.NAMENAME ='SuppName'
+WHERE 
+x.CONDITIONRETRIEVINGDATE = '$Awal' AND 
+x.ITEMTYPEAFICODE ='DYR' AND
+s.LOGICALWAREHOUSECODE='P504' AND 
+NOT x.EXTERNALREFERENCE LIKE '%RETUR%' AND 
+NOT x.ORDERLINE IS NULL
+GROUP BY 
+x.INTDOCUMENTPROVISIONALCODE,
+x.ORDERLINE,
+x.EXTERNALREFERENCE,
+x.ITEMDESCRIPTION,
+s.LOTCODE,
+x.SUBCODE01,
+x.SUBCODE02,
+x.SUBCODE03,
+x.SUBCODE04,
+x.SUBCODE05,
+x.SUBCODE06,
+x.SUBCODE07,
+x.SUBCODE08,
+x.CONDITIONRETRIEVINGDATE, 
+s.TRANSACTIONDATE,
+s.CREATIONUSER,
+s.LOGICALWAREHOUSECODE,
+s.WHSLOCATIONWAREHOUSEZONECODE,
+s.WAREHOUSELOCATIONCODE,
+f.SUMMARIZEDDESCRIPTION,
+a.VALUESTRING ";
+	$stmt1KY   = db2_exec($conn1,$sqlDB21KY, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21KY = db2_fetch_assoc($stmt1KY)){ 
+      $bonKY=trim($rowdb21KY['INTDOCUMENTPROVISIONALCODE'])."-".trim($rowdb21KY['ORDERLINE']);		
+      if ($rowdb21KY['DESTINATIONWAREHOUSECODE'] =='M501' or $rowdb21KY['DESTINATIONWAREHOUSECODE'] =='M904') { $knittKY = 'KNITTING ITTI ATAS- BENANG'; }
+      else if($rowdb21KY['DESTINATIONWAREHOUSECODE'] ='P501'){ $knittKY = 'KNITTING ITTI- BENANG'; }
+      else if($rowdb21KY['DESTINATIONWAREHOUSECODE'] ='M051') { $knittKY =  'KNITTING A- BENANG'; }
+      else if($rowdb21KY['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKY =  'YARN DYE'; } 
+	  $kdbenangKY=trim($rowdb21KY['SUBCODE01'])." ".trim($rowdb21KY['SUBCODE02'])." ".trim($rowdb21KY['SUBCODE03'])." ".trim($rowdb21KY['SUBCODE04'])." ".trim($rowdb21KY['SUBCODE05'])." ".trim($rowdb21KY['SUBCODE06'])." ".trim($rowdb21KY['SUBCODE07'])." ".trim($rowdb21KY['SUBCODE08']);	
+
+		$simpanKY=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
+tgl_keluar	= '".$rowdb21KY['TRANSACTIONDATE']."',
+no_bon 	= '".$bonKY."',
+knitt 	= '".$knittKY."',
+no_po 	= '".$rowdb21KY['EXTERNALREFERENCE']."',
+itemdesc= '".str_replace("'","''",$rowdb21KY['ITEMDESCRIPTION'])."',
+supplier= '".$rowdb21KY['SUPPLIER']."',
+kode 	= '".$kdbenangKY."',
+tipe	= 'DYR',
+jenis_benang= '".str_replace("'","''",$rowdb21KY['SUMMARIZEDDESCRIPTION'])."',
+lot 	= '".$rowdb21KY['LOTCODE']."',
+blok 	= '".$rowdb21KY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KY['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21KY['QTY_ROL']."',
+cones	= '".$rowdb21KY['QTY_CONES']."',
+berat	= '".round($rowdb21KY['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN KELUAR BENANG DYR");			
+
+		
+	}	
+// Keluar Benang Retur Supplier.
+$sqlDB21RK = "SELECT
+	INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+	INTERNALDOCUMENTLINE.ORDERLINE,
+	INTERNALDOCUMENT.EXTERNALREFERENCE,
+	INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+	STOCKTRANSACTION.LOTCODE,
+	SUM(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_KG,
+	COUNT(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_ROL,
+	SUM(STOCKTRANSACTION.BASESECONDARYQUANTITY) AS QTY_CONES,
+	INTERNALDOCUMENT.EXTERNALREFERENCEDATE,
+	INTERNALDOCUMENTLINE.SUBCODE01,
+	INTERNALDOCUMENTLINE.SUBCODE02,
+	INTERNALDOCUMENTLINE.SUBCODE03,
+	INTERNALDOCUMENTLINE.SUBCODE04,
+	INTERNALDOCUMENTLINE.SUBCODE05,
+	INTERNALDOCUMENTLINE.SUBCODE06,
+	INTERNALDOCUMENTLINE.SUBCODE07,
+	INTERNALDOCUMENTLINE.SUBCODE08,
+	STOCKTRANSACTION.CREATIONUSER,
+	STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+	STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+	STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+	FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION,
+	ADSTORAGE.VALUESTRING AS SUPP,
+	CASE
+		WHEN ADSTORAGE2.VALUESTRING = 0 THEN 'DUS'
+		WHEN ADSTORAGE2.VALUESTRING = 1 THEN 'KARUNG'
+		WHEN ADSTORAGE2.VALUESTRING = 2 THEN 'CONES'
+	END AS SATUAN
+FROM
+		DB2ADMIN.STOCKTRANSACTION STOCKTRANSACTION
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENTLINE INTERNALDOCUMENTLINE ON
+		INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE = STOCKTRANSACTION.ORDERCODE
+	AND 
+INTERNALDOCUMENTLINE.ORDERLINE = STOCKTRANSACTION.ORDERLINE
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENT INTERNALDOCUMENT ON
+		INTERNALDOCUMENT.PROVISIONALCOUNTERCODE = INTERNALDOCUMENTLINE.INTDOCPROVISIONALCOUNTERCODE
+	AND 
+INTERNALDOCUMENT.PROVISIONALCODE = INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE
+LEFT OUTER JOIN DB2ADMIN.FULLITEMKEYDECODER FULLITEMKEYDECODER ON
+		STOCKTRANSACTION.FULLITEMIDENTIFIER = FULLITEMKEYDECODER.IDENTIFIER
+LEFT OUTER JOIN DB2ADMIN.ADSTORAGE ADSTORAGE ON
+		INTERNALDOCUMENTLINE.ABSUNIQUEID = ADSTORAGE.UNIQUEID
+	AND ADSTORAGE.NAMENAME = 'SuppName'
+LEFT OUTER JOIN DB2ADMIN.ADSTORAGE ADSTORAGE2 ON
+		INTERNALDOCUMENTLINE.ABSUNIQUEID = ADSTORAGE2.UNIQUEID
+	AND ADSTORAGE2.NAMENAME = 'Satuan'
+WHERE
+		INTERNALDOCUMENT.EXTERNALREFERENCE LIKE '%RETUR%'
+	AND 
+STOCKTRANSACTION.LOGICALWAREHOUSECODE = 'M011'
+	AND
+INTERNALDOCUMENT.EXTERNALREFERENCEDATE = '$Awal'
+	AND NOT INTERNALDOCUMENTLINE.ORDERLINE IS NULL
+GROUP BY
+		STOCKTRANSACTION.LOTCODE,
+		INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+		INTERNALDOCUMENT.EXTERNALREFERENCE,
+		INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+		INTERNALDOCUMENT.EXTERNALREFERENCEDATE,
+		INTERNALDOCUMENTLINE.ORDERLINE,
+		INTERNALDOCUMENTLINE.SUBCODE01,
+		INTERNALDOCUMENTLINE.SUBCODE02,
+		INTERNALDOCUMENTLINE.SUBCODE03,
+		INTERNALDOCUMENTLINE.SUBCODE04,
+		INTERNALDOCUMENTLINE.SUBCODE05,
+		INTERNALDOCUMENTLINE.SUBCODE06,
+		INTERNALDOCUMENTLINE.SUBCODE07,
+		INTERNALDOCUMENTLINE.SUBCODE08,
+		STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+		STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+		STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+		STOCKTRANSACTION.CREATIONUSER,
+		FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION,
+		ADSTORAGE.VALUESTRING,
+		ADSTORAGE2.VALUESTRING ";
+	$stmt1RK   = db2_exec($conn1,$sqlDB21RK, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21RK = db2_fetch_assoc($stmt1RK)){ 
+      $bonRK=trim($rowdb21RK['INTDOCUMENTPROVISIONALCODE'])."-".trim($rowdb21RK['ORDERLINE']);		
+      if ($rowdb21RK['DESTINATIONWAREHOUSECODE'] =='M501' or $rowdb21RK['DESTINATIONWAREHOUSECODE'] =='M904') { $knittRK = 'KNITTING ITTI ATAS- BENANG'; }
+      else if($rowdb21RK['DESTINATIONWAREHOUSECODE'] ='P501'){ $knittRK = 'KNITTING ITTI- BENANG'; }
+      else if($rowdb21RK['DESTINATIONWAREHOUSECODE'] ='M051') { $knittRK =  'KNITTING A- BENANG'; }
+      else if($rowdb21RK['DESTINATIONWAREHOUSECODE'] ='P503') { $knittRK =  'YARN DYE'; } 
+	  $kdbenangRK=trim($rowdb21RK['SUBCODE01'])." ".trim($rowdb21RK['SUBCODE02'])." ".trim($rowdb21RK['SUBCODE03'])." ".trim($rowdb21RK['SUBCODE04'])." ".trim($rowdb21RK['SUBCODE05'])." ".trim($rowdb21RK['SUBCODE06'])." ".trim($rowdb21RK['SUBCODE07'])." ".trim($rowdb21RK['SUBCODE08']);	
+
+		$simpanRK=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
+tgl_keluar	= '".$rowdb21RK['TRANSACTIONDATE']."',
+no_bon 	= '".$bonRK."',
+knitt 	= '".$knittRK."',
+no_po 	= '".$rowdb21RK['EXTERNALREFERENCE']."',
+itemdesc= '".str_replace("'","''",$rowdb21RK['ITEMDESCRIPTION'])."',
+supplier= '".$rowdb21RK['SUPP']."',
+kode 	= '".$kdbenangRK."',
+tipe	= 'GYR',
+jenis_benang= '".str_replace("'","''",$rowdb21RK['SUMMARIZEDDESCRIPTION'])."',
+lot 	= '".$rowdb21RK['LOTCODE']."',
+blok 	= '".$rowdb21RK['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RK['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21RK['QTY_ROL']."',
+cones	= '".$rowdb21RK['QTY_CONES']."',
+berat	= '".round($rowdb21RK['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN RETUR KELUAR BENANG SUPP");			
+
+		
+	}
+				
+// Jual Benang.
+$sqlDB21KJ = "SELECT 
+INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+INTERNALDOCUMENTLINE.ORDERLINE,
+INTERNALDOCUMENT.EXTERNALREFERENCE,
+INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+STOCKTRANSACTION.LOTCODE,
+SUM(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_KG,
+COUNT(STOCKTRANSACTION.BASEPRIMARYQUANTITY) AS QTY_ROL,
+SUM(STOCKTRANSACTION.BASESECONDARYQUANTITY) AS QTY_CONES,
+INTERNALDOCUMENT.EXTERNALREFERENCEDATE,
+INTERNALDOCUMENTLINE.SUBCODE01,
+INTERNALDOCUMENTLINE.SUBCODE02,
+INTERNALDOCUMENTLINE.SUBCODE03,
+INTERNALDOCUMENTLINE.SUBCODE04,
+INTERNALDOCUMENTLINE.SUBCODE05,
+INTERNALDOCUMENTLINE.SUBCODE06,
+INTERNALDOCUMENTLINE.SUBCODE07,
+INTERNALDOCUMENTLINE.SUBCODE08,
+STOCKTRANSACTION.CREATIONUSER,
+STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION,
+ADSTORAGE.VALUESTRING AS SUPP,
+	CASE
+		WHEN ADSTORAGE2.VALUESTRING = 0 THEN 'DUS'
+		WHEN ADSTORAGE2.VALUESTRING = 1 THEN 'KARUNG'
+		WHEN ADSTORAGE2.VALUESTRING = 2 THEN 'CONES'
+	END AS SATUAN
+FROM DB2ADMIN.STOCKTRANSACTION STOCKTRANSACTION 
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENTLINE INTERNALDOCUMENTLINE ON INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE=STOCKTRANSACTION.ORDERCODE AND 
+INTERNALDOCUMENTLINE.ORDERLINE=STOCKTRANSACTION.ORDERLINE
+LEFT OUTER JOIN DB2ADMIN.INTERNALDOCUMENT INTERNALDOCUMENT ON INTERNALDOCUMENT.PROVISIONALCOUNTERCODE = INTERNALDOCUMENTLINE.INTDOCPROVISIONALCOUNTERCODE AND 
+INTERNALDOCUMENT.PROVISIONALCODE = INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE  
+LEFT OUTER JOIN DB2ADMIN.FULLITEMKEYDECODER FULLITEMKEYDECODER ON
+STOCKTRANSACTION.FULLITEMIDENTIFIER = FULLITEMKEYDECODER.IDENTIFIER
+LEFT OUTER JOIN DB2ADMIN.ADSTORAGE ADSTORAGE ON
+		INTERNALDOCUMENTLINE.ABSUNIQUEID = ADSTORAGE.UNIQUEID
+	AND ADSTORAGE.NAMENAME = 'SuppName'
+LEFT OUTER JOIN DB2ADMIN.ADSTORAGE ADSTORAGE2 ON
+		INTERNALDOCUMENTLINE.ABSUNIQUEID = ADSTORAGE2.UNIQUEID
+	AND ADSTORAGE2.NAMENAME = 'Satuan'
+WHERE INTERNALDOCUMENT.EXTERNALREFERENCE LIKE '%JUAL%' AND 
+STOCKTRANSACTION.LOGICALWAREHOUSECODE ='M011' AND
+INTERNALDOCUMENT.EXTERNALREFERENCEDATE = '$Awal' AND NOT INTERNALDOCUMENTLINE.ORDERLINE IS NULL
+GROUP BY
+STOCKTRANSACTION.LOTCODE,
+INTERNALDOCUMENTLINE.INTDOCUMENTPROVISIONALCODE,
+INTERNALDOCUMENT.EXTERNALREFERENCE,
+INTERNALDOCUMENTLINE.ITEMDESCRIPTION,
+INTERNALDOCUMENT.EXTERNALREFERENCEDATE,
+INTERNALDOCUMENTLINE.ORDERLINE,
+INTERNALDOCUMENTLINE.SUBCODE01,
+INTERNALDOCUMENTLINE.SUBCODE02,
+INTERNALDOCUMENTLINE.SUBCODE03,
+INTERNALDOCUMENTLINE.SUBCODE04,
+INTERNALDOCUMENTLINE.SUBCODE05,
+INTERNALDOCUMENTLINE.SUBCODE06,
+INTERNALDOCUMENTLINE.SUBCODE07,
+INTERNALDOCUMENTLINE.SUBCODE08,
+STOCKTRANSACTION.WHSLOCATIONWAREHOUSEZONECODE,
+STOCKTRANSACTION.WAREHOUSELOCATIONCODE,
+STOCKTRANSACTION.LOGICALWAREHOUSECODE,
+STOCKTRANSACTION.CREATIONUSER,
+FULLITEMKEYDECODER.SUMMARIZEDDESCRIPTION,
+ADSTORAGE.VALUESTRING,
+ADSTORAGE2.VALUESTRING ";
+	$stmt1KJ   = db2_exec($conn1,$sqlDB21KJ, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21KJ = db2_fetch_assoc($stmt1KJ)){ 
+      $bonKJ=trim($rowdb21KJ['INTDOCUMENTPROVISIONALCODE'])."-".trim($rowdb21KJ['ORDERLINE']);		
+      if ($rowdb21KJ['DESTINATIONWAREHOUSECODE'] =='M501' or $rowdb21KJ['DESTINATIONWAREHOUSECODE'] =='M904') { $knittKJ = 'KNITTING ITTI ATAS- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P501'){ $knittKJ = 'KNITTING ITTI- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='M051') { $knittKJ =  'KNITTING A- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKJ =  'YARN DYE'; } 
+	  $kdbenangKJ=trim($rowdb21KJ['SUBCODE01'])." ".trim($rowdb21KJ['SUBCODE02'])." ".trim($rowdb21KJ['SUBCODE03'])." ".trim($rowdb21KJ['SUBCODE04'])." ".trim($rowdb21KJ['SUBCODE05'])." ".trim($rowdb21KJ['SUBCODE06'])." ".trim($rowdb21KJ['SUBCODE07'])." ".trim($rowdb21KJ['SUBCODE08']);	
+
+		$simpanKJ=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
+tgl_keluar	= '".$rowdb21KJ['TRANSACTIONDATE']."',
+no_bon 	= '".$bonRK."',
+knitt 	= '".$knittKJ."',
+no_po 	= '".$rowdb21KJ['EXTERNALREFERENCE']."',
+itemdesc= '".str_replace("'","''",$rowdb21KJ['ITEMDESCRIPTION'])."',
+supplier= '".$rowdb21KJ['SUPP']."',
+kode 	= '".$rowdb21KJ."',
+tipe	= 'GYR',
+jenis_benang= '".str_replace("'","''",$rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
+lot 	= '".$rowdb21KJ['LOTCODE']."',
+blok 	= '".$rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21KJ['QTY_ROL']."',
+cones	= '".$rowdb21KJ['QTY_CONES']."',
+berat	= '".round($rowdb21KJ['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN JUAL BENANG");			
+
+		
+	}
+				
+// Jual Benang RMP.
+$sqlDB21KJ = "SELECT
+	s.TRANSACTIONDATE,
+	SUM(s.BASEPRIMARYQUANTITY) AS QTY_KG,
+	COUNT(s.BASEPRIMARYQUANTITY) AS QTY_ROL,
+	SUM(s.BASESECONDARYQUANTITY) AS QTY_CONES,
+	s.LOTCODE,
+	s.ORDERCODE,
+	s.ORDERLINE,
+	s.DECOSUBCODE01,
+	s.DECOSUBCODE02,
+	s.DECOSUBCODE03,
+	s.DECOSUBCODE04,
+	s.DECOSUBCODE05,
+	s.DECOSUBCODE06,
+	s.DECOSUBCODE07,
+	s.DECOSUBCODE08,
+	s.WHSLOCATIONWAREHOUSEZONECODE,
+	s.WAREHOUSELOCATIONCODE,
+	s.CREATIONUSER, 
+	sl.ITEMDESCRIPTION,
+	sl.EXTERNALREFERENCE,
+	l.SUPPLIERCODE,
+	b.LEGALNAME1,
+	f.SUMMARIZEDDESCRIPTION
+FROM
+	STOCKTRANSACTION s
+LEFT OUTER JOIN SALESDOCUMENTLINE sl ON
+	sl.SALESDOCUMENTPROVISIONALCODE = s.ORDERCODE
+	AND sl.ORDERLINE = s.ORDERLINE
+LEFT OUTER JOIN LOT l ON
+	l.CODE = s.LOTCODE
+LEFT OUTER JOIN CUSTOMERSUPPLIERDATA c ON
+	c.CODE = l.SUPPLIERCODE
+LEFT OUTER JOIN BUSINESSPARTNER b ON
+	b.NUMBERID = c.BUSINESSPARTNERNUMBERID
+LEFT OUTER JOIN FULLITEMKEYDECODER f ON
+	s.FULLITEMIDENTIFIER = f.IDENTIFIER
+WHERE
+	s.ORDERCOUNTERCODE = 'PCAPROV'
+	AND s.ITEMTYPECODE = 'GYR'
+	AND s.LOGICALWAREHOUSECODE = 'M011'
+	AND s.TRANSACTIONDATE = '$Awal'
+GROUP BY
+	s.TRANSACTIONDATE,
+	s.LOTCODE,
+	s.ORDERCODE,
+	s.ORDERLINE,
+	s.DECOSUBCODE01,
+	s.DECOSUBCODE02,
+	s.DECOSUBCODE03,
+	s.DECOSUBCODE04,
+	s.DECOSUBCODE05,
+	s.DECOSUBCODE06,
+	s.DECOSUBCODE07,
+	s.DECOSUBCODE08,
+	s.WHSLOCATIONWAREHOUSEZONECODE,
+	s.WAREHOUSELOCATIONCODE,
+	s.CREATIONUSER, 
+	sl.ITEMDESCRIPTION,
+	sl.EXTERNALREFERENCE,
+	l.SUPPLIERCODE,
+	b.LEGALNAME1,
+	f.SUMMARIZEDDESCRIPTION ";
+	$stmt1KJ   = db2_exec($conn1,$sqlDB21KJ, array('cursor'=>DB2_SCROLLABLE));
+	//}				  
+    while($rowdb21KJ = db2_fetch_assoc($stmt1KJ)){ 
+      $bonKJ=trim($rowdb21KJ['ORDERCODE'])."-".trim($rowdb21KJ['ORDERLINE']);		
+      if ($rowdb21KJ['DESTINATIONWAREHOUSECODE'] =='M501' or $rowdb21KJ['DESTINATIONWAREHOUSECODE'] =='M904') { $knittKJ = 'KNITTING ITTI ATAS- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P501'){ $knittKJ = 'KNITTING ITTI- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='M051') { $knittKJ =  'KNITTING A- BENANG'; }
+      else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKJ =  'YARN DYE'; } 
+	  $kdbenangKJ=trim($rowdb21KJ['DECOSUBCODE01'])." ".trim($rowdb21KJ['DECOSUBCODE02'])." ".trim($rowdb21KJ['DECOSUBCODE03'])." ".trim($rowdb21KJ['DECOSUBCODE04'])." ".trim($rowdb21KJ['DECOSUBCODE05'])." ".trim($rowdb21KJ['DECOSUBCODE06'])." ".trim($rowdb21KJ['DECOSUBCODE07'])." ".trim($rowdb21KJ['DECOSUBCODE08']);	
+
+$simpanKJ=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
+tgl_keluar	= '".$rowdb21KJ['TRANSACTIONDATE']."',
+no_bon 	= '".$bonRK."',
+knitt 	= '".$knittKJ."',
+no_po 	= '".$rowdb21KJ['EXTERNALREFERENCE']."',
+itemdesc= '".str_replace("'","''",$rowdb21KJ['ITEMDESCRIPTION'])."',
+supplier= '".$rowdb21KJ['LEGALNAME1']."',
+kode 	= '".$rowdb21KJ."',
+tipe	= 'GYR',
+jenis_benang= '".str_replace("'","''",$rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
+lot 	= '".$rowdb21KJ['LOTCODE']."',
+blok 	= '".$rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE']."',
+qty		= '".$rowdb21KJ['QTY_ROL']."',
+cones	= '".$rowdb21KJ['QTY_CONES']."',
+berat	= '".round($rowdb21KJ['QTY_KG'],2)."',
+tgl_tutup = '".$Awal."',
+tgl_buat =now()") or die("GAGAL SIMPAN JUAL BENANG");			
+
+		
+	}				
+echo "<script>
+$(function() {
+    Swal.fire(
+  'Stok Tgl ".$Awal." Sudah ditutup',
+  'You clicked the button!',
+  'success'
+).then(function() {
+                    window.location.href = 'TutupInOutHarian';
+                })
+  });
+  
+</script>";		
+		//echo "<script>";
+		//echo "alert('Stok Tgl ".$Awal." Sudah ditutup')";
+		//echo "</script>";
+        //echo "<meta http-equiv='refresh' content='0; url=TutupInOutHarian'>";
+ }
+}
+?>
