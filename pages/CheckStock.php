@@ -4,17 +4,29 @@ $Lokasi		= isset($_POST['lokasi']) ? $_POST['lokasi'] : '';
 $Barcode	= substr($_POST['barcode'],-13);
 ?>
 
-<?php 
-$sqlCek1 = sqlsrv_query($con,"SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='ok' and zone='$Zone' AND lokasi='$Lokasi'");
-$ck1     = sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC);
-$sqlCek2 = sqlsrv_query($con,"SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='belum cek' and zone='$Zone' AND lokasi='$Lokasi'");
-$ck2     = sqlsrv_fetch_array($sqlCek2, SQLSRV_FETCH_ASSOC);
+<?php
+// Helper sederhana supaya error query tidak meledak dengan fatal TypeError
+function sqlsrv_query_safe($conn, $sql)
+{
+    $stmt = sqlsrv_query($conn, $sql);
+    if ($stmt === false) {
+        // Log detail error ke error_log agar mudah dicek tanpa memutus eksekusi
+        error_log('SQLSRV query failed: ' . print_r(sqlsrv_errors(), true) . ' | SQL: ' . $sql);
+    }
+
+    return $stmt;
+}
+
+$sqlCek1 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='ok' and zone='$Zone' AND lokasi='$Lokasi'");
+$ck1     = ($sqlCek1 !== false) ? sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC) : ['jml' => 0];
+$sqlCek2 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='belum cek' and zone='$Zone' AND lokasi='$Lokasi'");
+$ck2     = ($sqlCek2 !== false) ? sqlsrv_fetch_array($sqlCek2, SQLSRV_FETCH_ASSOC) : ['jml' => 0];
 
 if($_POST['cek']=="Cek" or $_POST['cari']=="Cari"){
 	//if (strlen($_POST['barcode'])==13){
 	//$sqlCek=sqlsrv_query($con,"SELECT COUNT(*) as jml FROM	dbnow_gdb.tbl_stokfull WHERE zone='$Zone' AND lokasi='$Lokasi' AND SN='$Barcode'");
-	$sqlCek=sqlsrv_query($con,"SELECT COUNT(*) as jml, zone, lokasi, kg, lot FROM dbnow_gdb.tbl_stokfull WHERE SN='$Barcode'");
-	$ck=sqlsrv_fetch_array($sqlCek, SQLSRV_FETCH_ASSOC);
+		$sqlCek=sqlsrv_query_safe($con,"SELECT COUNT(*) as jml, zone, lokasi, kg, lot FROM dbnow_gdb.tbl_stokfull WHERE SN='$Barcode'");
+		$ck=($sqlCek !== false) ? sqlsrv_fetch_array($sqlCek, SQLSRV_FETCH_ASSOC) : ['jml' => 0, 'zone' => '', 'lokasi' => '', 'kg' => 0, 'lot' => ''];
 	if($Zone=="" and $Lokasi==""){
 		echo"<script>alert('Zone atau Lokasi belum dipilih');</script>";
 	}else if(is_numeric(trim($Barcode))== true and $Barcode!="" and strlen($Barcode)==13 and (substr($Barcode,0,2)=="15" or substr($Barcode,0,2)=="16" or
@@ -380,10 +392,10 @@ $sqlDB22 = " SELECT WHSLOCATIONWAREHOUSEZONECODE, WAREHOUSELOCATIONCODE, LOTCODE
 	if($rowd1['jmlscn']>1){
 	$ketSCN= "Jumlah Scan ".$rowd1['jmlscn']." kali";	
 	}else{ $ketSCN= "";}	
-	if($rowd1['tgl_masuk']=="0000-00-00" or $rowd1['tgl_masuk']==""){
-			$tglmsk="";
-	}else{
-			$tglmsk=$rowd1['tgl_masuk']; }
+		if($rowd1['tgl_masuk']=="0000-00-00" or $rowd1['tgl_masuk']==""){
+				$tglmsk="";
+		}else{
+				$tglmsk=fmt_date($rowd1['tgl_masuk']); }
 	$sqlDB22 = " SELECT WHSLOCATIONWAREHOUSEZONECODE, WAREHOUSELOCATIONCODE, LOTCODE FROM 
 	BALANCE b WHERE (b.ITEMTYPECODE='GYR' or b.ITEMTYPECODE='DYR') AND b.ELEMENTSCODE='$rowd1[SN]' ";
 	$stmt2   = db2_exec($conn1,$sqlDB22, array('cursor'=>DB2_SCROLLABLE));

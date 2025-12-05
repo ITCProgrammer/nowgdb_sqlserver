@@ -5,10 +5,23 @@ $POno		= isset($_POST['pono']) ? $_POST['pono'] : '';
 $Item		= isset($_POST['itemno']) ? $_POST['itemno'] : '';
 $NoWarna	= isset($_POST['warnano']) ? $_POST['warnano'] : '';
 $Zone		= isset($_POST['zone']) ? $_POST['zone'] : '';
+
+// Helper agar kegagalan query tidak menyebabkan fatal error
+if (!function_exists('sqlsrv_query_safe')) {
+	function sqlsrv_query_safe($conn, $sql)
+	{
+		$stmt = sqlsrv_query($conn, $sql);
+		if ($stmt === false) {
+			error_log('SQLSRV query failed: ' . print_r(sqlsrv_errors(), true) . ' | SQL: ' . $sql);
+		}
+
+		return $stmt;
+	}
+}
 ?>
 <!-- Main content -->
       <div class="container-fluid">
-		  
+			  
 	    <div class="card card-pink">
               <div class="card-header">
                 <h3 class="card-title">Detail Data Upload</h3>
@@ -35,9 +48,13 @@ $Zone		= isset($_POST['zone']) ? $_POST['zone'] : '';
                   <tbody>
 				  <?php
 					$no=1; 
-					$sql=sqlsrv_query($con,"SELECT * FROM dbnow_gdb.tbl_upload ORDER BY id DESC");
-	  				while($rowd=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC)){
-						$sql1=sqlsrv_query(
+					$sql=sqlsrv_query_safe($con,"SELECT * FROM dbnow_gdb.tbl_upload ORDER BY id DESC");
+					if ($sql === false) {
+						// Jika query gagal, hentikan tampilan agar tidak fatal
+						echo '<tr><td colspan="10" class="text-center text-danger">Gagal mengambil data upload (lihat log server).</td></tr>';
+					}
+	  				while($sql !== false && ($rowd=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
+						$sql1=sqlsrv_query_safe(
 							$con,
 							"SELECT 
 								COUNT(*) AS JML, 
@@ -46,7 +63,7 @@ $Zone		= isset($_POST['zone']) ? $_POST['zone'] : '';
 							 FROM intbl_stokfull 
 							 WHERE id_upload='".$rowd['id']."'"
 						);					  
-	  					$rowd1=sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC);
+	  					$rowd1=($sql1 !== false) ? sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC) : ['JML' => 0, 'bcek' => 0, 'scek' => 0];
 
 						// format tanggal dari SQL Server (DateTime) ke string
 						$tglUpload = $rowd['tgl_upload'];
