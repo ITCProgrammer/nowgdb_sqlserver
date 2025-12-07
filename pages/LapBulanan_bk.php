@@ -89,13 +89,13 @@ $Lalu 		= $Bln2-1;
           </div>
               <!-- /.card-header -->
               <div class="card-body">
-			<?php	  
-	$sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(weight) as kg FROM tblopname 
-	WHERE DATE_FORMAT(tgl_tutup,'%Y-%m')='$TBln' AND tipe='GYR' GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 1 ");		  
-    $r = mysqli_fetch_array($sql);
-	$sqlY = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(weight) as kg FROM tblopname 
-	WHERE DATE_FORMAT(tgl_tutup,'%Y-%m')='$TBln' AND tipe='DYR' GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 1 ");		  
-    $rY = mysqli_fetch_array($sqlY);			  
+<?php	  
+$sql = sqlsrv_query_safe($con," SELECT TOP 1 tgl_tutup,sum(qty) as qty,sum(weight) as kg FROM dbnow_gdb.tblopname 
+	WHERE FORMAT(tgl_tutup,'yyyy-MM')='$TBln' AND tipe='GYR' GROUP BY tgl_tutup ORDER BY tgl_tutup DESC ");		  
+    $r = ($sql !== false) ? sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlY = sqlsrv_query_safe($con," SELECT TOP 1 tgl_tutup,sum(qty) as qty,sum(weight) as kg FROM dbnow_gdb.tblopname 
+	WHERE FORMAT(tgl_tutup,'yyyy-MM')='$TBln' AND tipe='DYR' GROUP BY tgl_tutup ORDER BY tgl_tutup DESC ");		  
+    $rY = ($sqlY !== false) ? sqlsrv_fetch_array($sqlY, SQLSRV_FETCH_ASSOC) : ['kg'=>0];			  
 	?>			<strong>Sisa Stok Bulan Lalu GYR: <?php echo number_format(round($r['kg'],2),2); ?></strong><br>
 				<strong>Sisa Stok Bulan Lalu DYR: <?php echo number_format(round($rY['kg'],2),2); ?></strong><br>  
                 <table id="example16" width="100%" class="table table-sm table-bordered table-striped" style="font-size: 11px; text-align: center;">
@@ -133,33 +133,34 @@ $Lalu 		= $Bln2-1;
                   </thead>
                   <tbody>
 <?php for ($i = 1; $i <= $d; $i++){ 
-	$sqlMasuk = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblmasukbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='GYR' AND ISNULL(no_po) GROUP BY tgl_tutup ");	
-	$rMasuk = mysqli_fetch_array($sqlMasuk);
-	$sqlMasukY = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblmasukbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='DYR' AND ISNULL(no_po) GROUP BY tgl_tutup ");	
-	$rMasukY = mysqli_fetch_array($sqlMasukY);
-	$sqlRMasuk = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblmasukbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='GYR' AND no_po='RETUR' GROUP BY tgl_tutup ");	
-	$rRMasuk = mysqli_fetch_array($sqlRMasuk);	
-	$sqlRMasukY = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblmasukbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='DYR' AND no_po='RETUR' GROUP BY tgl_tutup ");	
-	$rRMasukY = mysqli_fetch_array($sqlRMasukY);
-	$sqlKeluar = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblkeluarbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='GYR' AND NOT no_po LIKE '%RETUR%' GROUP BY tgl_tutup");		  
-    $rKeluar = mysqli_fetch_array($sqlKeluar);
-	$sqlKeluarY = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblkeluarbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='DYR' AND NOT no_po LIKE '%RETUR%' GROUP BY tgl_tutup");		  
-    $rKeluarY = mysqli_fetch_array($sqlKeluarY);
-	$sqlRKeluar = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblkeluarbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='GYR' AND no_po LIKE '%RETUR%' GROUP BY tgl_tutup");		  
-    $rRKeluar = mysqli_fetch_array($sqlRKeluar);
-	$sqlJual = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblkeluarbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='GYR' AND no_po LIKE '%JUAL%' GROUP BY tgl_tutup");		  
-    $rJual = mysqli_fetch_array($sqlJual);
-	$sqlJualY = mysqli_query($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM tblkeluarbenang 
-	WHERE tgl_tutup='$Thn2-$Bln2-$i' AND tipe='DYR' AND no_po LIKE '%JUAL%' GROUP BY tgl_tutup");		  
-    $rJualY = mysqli_fetch_array($sqlJualY);
+	$hari = sprintf('%s-%s-%02d',$Thn2,$Bln2,$i);
+	$sqlMasuk = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblmasukbenang 
+	WHERE tgl_tutup='$hari' AND tipe='GYR' AND no_po IS NULL GROUP BY tgl_tutup ");	
+	$rMasuk = ($sqlMasuk !== false) ? sqlsrv_fetch_array($sqlMasuk, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlMasukY = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblmasukbenang 
+	WHERE tgl_tutup='$hari' AND tipe='DYR' AND no_po IS NULL GROUP BY tgl_tutup ");	
+	$rMasukY = ($sqlMasukY !== false) ? sqlsrv_fetch_array($sqlMasukY, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlRMasuk = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblmasukbenang 
+	WHERE tgl_tutup='$hari' AND tipe='GYR' AND no_po='RETUR' GROUP BY tgl_tutup ");	
+	$rRMasuk = ($sqlRMasuk !== false) ? sqlsrv_fetch_array($sqlRMasuk, SQLSRV_FETCH_ASSOC) : ['kg'=>0,'qty'=>0,'berat'=>0];	
+	$sqlRMasukY = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblmasukbenang 
+	WHERE tgl_tutup='$hari' AND tipe='DYR' AND no_po='RETUR' GROUP BY tgl_tutup ");	
+	$rRMasukY = ($sqlRMasukY !== false) ? sqlsrv_fetch_array($sqlRMasukY, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlKeluar = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblkeluarbenang 
+	WHERE tgl_tutup='$hari' AND tipe='GYR' AND no_po NOT LIKE '%RETUR%' GROUP BY tgl_tutup");		  
+    $rKeluar = ($sqlKeluar !== false) ? sqlsrv_fetch_array($sqlKeluar, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlKeluarY = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblkeluarbenang 
+	WHERE tgl_tutup='$hari' AND tipe='DYR' AND no_po NOT LIKE '%RETUR%' GROUP BY tgl_tutup");		  
+    $rKeluarY = ($sqlKeluarY !== false) ? sqlsrv_fetch_array($sqlKeluarY, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlRKeluar = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblkeluarbenang 
+	WHERE tgl_tutup='$hari' AND tipe='GYR' AND no_po LIKE '%RETUR%' GROUP BY tgl_tutup");		  
+    $rRKeluar = ($sqlRKeluar !== false) ? sqlsrv_fetch_array($sqlRKeluar, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlJual = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblkeluarbenang 
+	WHERE tgl_tutup='$hari' AND tipe='GYR' AND no_po LIKE '%JUAL%' GROUP BY tgl_tutup");		  
+    $rJual = ($sqlJual !== false) ? sqlsrv_fetch_array($sqlJual, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
+	$sqlJualY = sqlsrv_query_safe($con," SELECT tgl_tutup,sum(qty) as qty,sum(berat) as kg FROM dbnow_gdb.tblkeluarbenang 
+	WHERE tgl_tutup='$hari' AND tipe='DYR' AND no_po LIKE '%JUAL%' GROUP BY tgl_tutup");		  
+    $rJualY = ($sqlJualY !== false) ? sqlsrv_fetch_array($sqlJualY, SQLSRV_FETCH_ASSOC) : ['kg'=>0];
 	if($i=="1"){
 	$sisa+=round($r['kg'],2)+((round($rMasuk['kg'],3)+round($rRMasuk['kg'],3))-(round($rKeluar['kg'],3)+round($rRKeluar['kg'],3)));	
 	}else{

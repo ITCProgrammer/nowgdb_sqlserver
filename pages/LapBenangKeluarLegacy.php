@@ -1,6 +1,8 @@
 <?php
 $Awal	= isset($_POST['tgl_awal']) ? $_POST['tgl_awal'] : '';
 $Akhir	= isset($_POST['tgl_akhir']) ? $_POST['tgl_akhir'] : '';
+$AwalEsc = sqlsrv_escape_str($Awal);
+$AkhirEsc = sqlsrv_escape_str($Akhir);
 ?>
 <!-- Main content -->
       <div class="container-fluid">
@@ -75,13 +77,15 @@ $Akhir	= isset($_POST['tgl_akhir']) ? $_POST['tgl_akhir'] : '';
                     </tr>
                   </thead>
                   <tbody>
-				  <?php
-	 
+<?php
 $no=1;   
 $c=0;
 					// Query awal  
-	$sql = mysqli_query($con,"select
-	x.*,
+	$sql = sqlsrv_query_safe($con,"select
+	x.id,
+	x.tgl,
+	x.no_doc,
+	x.bon,
 	sum(y.berat) as berat,
 	sum(y.cones) as cones,
 	count(y.sn) as qty,
@@ -89,18 +93,18 @@ $c=0;
 	ts.lot,
 	ts.satuan
 from
-	tbl_stok_keluar x
-inner join tbl_benang_keluar y on
+	dbnow_gdb.tbl_stok_keluar x
+inner join dbnow_gdb.tbl_benang_keluar y on
 	y.id_stok = x.id
-inner join tbl_stoklegacy ts on
+inner join dbnow_gdb.tbl_stoklegacy ts on
 	ts.sn = y.sn
 where
-	x.tgl between '$Awal' and '$Akhir'
+	x.tgl between '$AwalEsc' and '$AkhirEsc'
 group by
-	x.id
+	x.id, x.tgl, x.no_doc, x.bon, ts.jenis_benang, ts.lot, ts.satuan
 order by
-	id asc");
-	while($r=mysqli_fetch_array($sql)){				  
+	x.id asc");
+	while($sql !== false && ($r=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){				  
 					  ?>
 	  <tr>
 	  <td style="text-align: center"><?php echo $no; ?></td>

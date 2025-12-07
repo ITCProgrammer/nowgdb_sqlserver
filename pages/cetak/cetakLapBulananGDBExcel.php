@@ -63,7 +63,7 @@ $akhirBulanBerjalan = $tanggalAkhirBulanBerjalan->format('Y-m-d');
 		$blnLaluA 	= "";
 		$blnJlnA	= "";	
 		}
-		$sqlBlnLalu = mysqli_query($con," select 
+		$sqlBlnLalu = sqlsrv_query_safe($con," select 
 SUM(CASE WHEN (td.grd IN('','A','B') AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS gyr_proses,
 SUM(CASE WHEN (td.grd IN('','A','B') AND td.tipe = 'DYR') THEN td.weight ELSE 0 END) AS dyr_proses,
 SUM(CASE WHEN (td.grd = 'C' AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS gyr_stkmati,
@@ -72,9 +72,9 @@ SUM(CASE WHEN (td.grd = 'D' AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS g
 SUM(CASE WHEN (td.grd = 'D' AND td.tipe = 'DYR') THEN td.weight ELSE 0 END) AS dyr_sample
 from dbnow_gdb.tblopname_11 AS td
 WHERE tgl_tutup ='$blnLaluA' ");		  
-    	$rLalu = mysqli_fetch_array($sqlBlnLalu);
+    	$rLalu = ($sqlBlnLalu !== false) ? sqlsrv_fetch_array($sqlBlnLalu, SQLSRV_FETCH_ASSOC) : ['gyr_proses'=>0,'dyr_proses'=>0,'gyr_stkmati'=>0,'dyr_stkmati'=>0,'gyr_sample'=>0,'dyr_sample'=>0];
 		  
-		$sqlBlnJln = mysqli_query($con," select 
+		$sqlBlnJln = sqlsrv_query_safe($con," select 
 SUM(CASE WHEN (td.grd IN('','A','B') AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS gyr_proses,
 SUM(CASE WHEN (td.grd IN('','A','B') AND td.tipe = 'DYR') THEN td.weight ELSE 0 END) AS dyr_proses,
 SUM(CASE WHEN (td.grd = 'C' AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS gyr_stkmati,
@@ -83,7 +83,7 @@ SUM(CASE WHEN (td.grd = 'D' AND td.tipe = 'GYR') THEN td.weight ELSE 0 END) AS g
 SUM(CASE WHEN (td.grd = 'D' AND td.tipe = 'DYR') THEN td.weight ELSE 0 END) AS dyr_sample
 from dbnow_gdb.tblopname_11 AS td
 WHERE tgl_tutup ='$blnJlnA' ");		  
-    	$rJln = mysqli_fetch_array($sqlBlnJln); 
+    	$rJln = ($sqlBlnJln !== false) ? sqlsrv_fetch_array($sqlBlnJln, SQLSRV_FETCH_ASSOC) : ['gyr_proses'=>0,'dyr_proses'=>0,'gyr_stkmati'=>0,'dyr_stkmati'=>0,'gyr_sample'=>0,'dyr_sample'=>0]; 
 		  
 $sqlDB21Masuk = " SELECT
 	SUM(CASE WHEN (x.QUALITYLEVELCODE IN('1','2') AND x.ITEMTYPECODE = 'GYR') THEN x.BASEPRIMARYQUANTITY ELSE 0 END) AS GYR_PROSES,

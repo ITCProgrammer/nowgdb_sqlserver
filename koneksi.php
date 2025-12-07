@@ -98,12 +98,18 @@ if (!function_exists('sqlsrv_query_safe')) {
         $stmt = sqlsrv_query($conn, $sql);
         if ($stmt === false) {
             $err = print_r(sqlsrv_errors(), true);
-            $msg = 'SQLSRV query failed' . ($ctx ? " ($ctx)" : '') . ': ' . $err . ' | SQL: ' . $sql;
+            // ambil info pemanggil untuk debug cepat
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $caller = isset($trace[1]['file'])
+                ? ($trace[1]['file'] . ':' . ($trace[1]['line'] ?? ''))
+                : '';
+            $msg = 'SQLSRV query failed' . ($ctx ? " ($ctx)" : '') . ($caller ? " @ $caller" : '') . ': ' . $err . ' | SQL: ' . $sql;
             error_log($msg);
 
             if (!$notif_shown) {
                 $safeCtx = $ctx ? " [$ctx]" : '';
-                echo "<script>console.error('DB error{$safeCtx}. Lihat log server untuk detail.');</script>";
+                $safeCaller = $caller ? " @ $caller" : '';
+                echo "<script>console.error('DB error{$safeCtx}{$safeCaller}. Lihat log server untuk detail.');</script>";
                 $notif_shown = true;
             }
         }

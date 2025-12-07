@@ -222,15 +222,14 @@ function checkAll(form1){
 }
 </script>
 <?php 
-if($_POST['mutasikain']=="MutasiKain"){
+if(isset($_POST['mutasikain']) && $_POST['mutasikain']=="MutasiKain"){
 	
 function mutasiurut(){
 include "koneksi.php";		
 $format = "20".date("ymd");
-$sql=mysqli_query($con,"SELECT no_mutasi FROM dbnow_gdb.tbl_mutasi_kain WHERE substr(no_mutasi,1,8) like '%".$format."%' ORDER BY no_mutasi DESC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY") or die (print_r(sqlsrv_errors(), true));
-$d=mysqli_num_rows($sql);
-if($d>0){
-$r=mysqli_fetch_array($sql);
+$sql=sqlsrv_query_safe($con,"SELECT TOP 1 no_mutasi FROM dbnow_gdb.tbl_mutasi_kain WHERE SUBSTRING(no_mutasi,1,8) like '%".$format."%' ORDER BY no_mutasi DESC");
+$r=($sql !== false) ? sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC) : null;
+if($r){
 $d=$r['no_mutasi'];
 $str=substr($d,8,2);
 $Urut = (int)$str;
@@ -248,20 +247,20 @@ return $tidbr;
 }
 $nomid=mutasiurut();	
 
-$sql1=mysqli_query($con,"SELECT *,count(b.transid) as jmlrol,a.transid as kdtrans FROM tbl_mutasi_kain a 
-LEFT JOIN tbl_prodemand b ON a.transid=b.transid 
-WHERE isnull(a.no_mutasi) AND date_format(a.tgl_buat ,'%Y-%m-%d')='$Awal' AND a.gshift='$Gshift' 
-GROUP BY a.transid");
+$sql1=sqlsrv_query_safe($con,"SELECT a.*,count(b.transid) as jmlrol,a.transid as kdtrans FROM dbnow_gdb.tbl_mutasi_kain a 
+LEFT JOIN dbnow_gdb.tbl_prodemand b ON a.transid=b.transid 
+WHERE a.no_mutasi IS NULL AND CONVERT(char(10),a.tgl_buat,120)='".sqlsrv_escape_str($Awal)."' AND a.gshift='".sqlsrv_escape_str($Gshift)."' 
+GROUP BY a.transid, a.tgl_buat, a.gshift");
 $n1=1;
 $noceklist1=1;	
-while($r1=mysqli_fetch_array($sql1)){	
-	if($_POST['cek'][$n1]!='') 
+while($sql1 !== false && ($r1=sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC))){	
+	if(!empty($_POST['cek'][$n1])) 
 		{
 		$transid1 = $_POST['cek'][$n1];
-		mysqli_query($con,"UPDATE tbl_mutasi_kain SET
-		no_mutasi='$nomid',
-		tgl_mutasi=now()
-		WHERE transid='$transid1'
+		sqlsrv_query_safe($con,"UPDATE dbnow_gdb.tbl_mutasi_kain SET
+		no_mutasi='".sqlsrv_escape_str($nomid)."',
+		tgl_mutasi=GETDATE()
+		WHERE transid='".sqlsrv_escape_str($transid1)."'
 		");
 		}else{
 			$noceklist1++;

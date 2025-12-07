@@ -37,8 +37,8 @@
 <?php 
 $no=1;   
 $c=0;				  
-$sql = mysqli_query($con," SELECT *, sum(cones) as cones1, sum(berat) as berat1, count(qty) as qty1 FROM tbl_stoklegacy WHERE ada='1' GROUP BY no_doc, blok ");		  
-    while($r = mysqli_fetch_array($sql)){ ?>
+$sql = sqlsrv_query_safe($con," SELECT no_doc, blok, MAX(tgl) as tgl, MAX(po) as po, MAX(surat_jalan) as surat_jalan, MAX(code) as code, MAX(supplier) as supplier, MAX(lot) as lot, MAX(satuan) as satuan, MAX(sts) as sts, MAX(inspection) as inspection, MAX(lama) as lama, MAX(blok) as blok, MAX(aktual) as aktual, MAX(ket) as ket, MAX(note) as note, MAX(id) as id, sum(cones) as cones1, sum(berat) as berat1, count(qty) as qty1 FROM dbnow_gdb.tbl_stoklegacy WHERE ada='1' GROUP BY no_doc, blok ");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){ ?>
 	  <tr>
 	  <td style="text-align: center"><?php echo $no; ?></td>
 	  <td style="text-align: center"><a href="#" id="<?php echo $r['no_doc']; ?>" class="btn btn-xs btn-info show_detailStkBenanglegacy">Detail</a></td>

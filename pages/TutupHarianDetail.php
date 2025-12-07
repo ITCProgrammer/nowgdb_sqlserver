@@ -71,8 +71,8 @@ $Awal	= isset($_POST['tgl_awal']) ? $_POST['tgl_awal'] : '';
 <?php	 
 $no=1;   
 $c=0;				  
-$sql = mysqli_query($con," SELECT tgl_tutup,tipe,sum(qty) as qty,sum(cones) as cones,sum(weight) as kg,DATE_FORMAT(now(),'%Y-%m-%d') as tgl FROM tblopname_detail GROUP BY tgl_tutup,tipe ORDER BY tgl_tutup DESC LIMIT 30");		  
-    while($r = mysqli_fetch_array($sql)){
+$sql = sqlsrv_query_safe($con," SELECT TOP 30 tgl_tutup,tipe,sum(qty) as qty,sum(cones) as cones,sum(weight) as kg,CONVERT(char(10),GETDATE(),120) as tgl FROM dbnow_gdb.tblopname_detail GROUP BY tgl_tutup,tipe ORDER BY tgl_tutup DESC");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
 		
 ?>
 	  <tr>
@@ -153,8 +153,8 @@ $sql = mysqli_query($con," SELECT tgl_tutup,tipe,sum(qty) as qty,sum(cones) as c
 <?php	
 if(isset($_POST['submit'])){
 
-$cektgl=mysqli_query($con,"SELECT DATE_FORMAT(NOW(),'%Y-%m-%d') as tgl,COUNT(tgl_tutup) as ck ,DATE_FORMAT(NOW(),'%H') as jam,DATE_FORMAT(NOW(),'%H:%i') as jam1 FROM tblopname_detail WHERE tgl_tutup='".$Awal."' LIMIT 1");
-$dcek=mysqli_fetch_array($cektgl);
+$cektgl=sqlsrv_query_safe($con,"SELECT CONVERT(char(10),GETDATE(),120) as tgl,COUNT(tgl_tutup) as ck ,DATEPART(hour,GETDATE()) as jam,CONVERT(char(5),GETDATE(),108) as jam1 FROM dbnow_gdb.tblopname_detail WHERE tgl_tutup='".sqlsrv_escape_str($Awal)."'");
+$dcek=($cektgl !== false) ? sqlsrv_fetch_array($cektgl, SQLSRV_FETCH_ASSOC) : ['tgl'=>$Awal,'ck'=>0,'jam'=>0,'jam1'=>'00:00'];
 $t1=strtotime($Awal);
 $t2=strtotime($dcek['tgl']);
 $selh=round(abs($t2-$t1)/(60*60*45));
@@ -299,26 +299,27 @@ a.VALUESTRING ";
 	   FULLITEMKEYDECODER.SUBCODE08='".trim($rowdb21['DECOSUBCODE08'])."'  ";
 	   $stmt3   = db2_exec($conn1,$sqlDB23, array('cursor'=>DB2_SCROLLABLE));
 	   $rowdb23 = db2_fetch_assoc($stmt3);
-	$simpan=mysqli_query($con,"INSERT INTO `tblopname_detail` SET 
-					tipe = '".$rowdb21['ITEMTYPECODE']."',
-					kd_benang = '".$kd."',
-					jenis_benang = '".str_replace("'","''",$rowdb23['SUMMARIZEDDESCRIPTION'])."',
-					lot = '".$rowdb21['LOTCODE']."',
-					po = '".$rowdb21['LOTCREATIONORDERNUMBER']."',
-					suppliercode = '".$rowdb21['SUPPLIERCODE']."',
-					suppliername = '".$rowdb21['LEGALNAME1']."',
-					qty = '".$rowdb21['QTY']."',
-					weight = '".round($rowdb21['KGS'],2)."', 
-					cones = '".$rowdb21['CONES']."',
-					grd = '$grd',
-					zone = '".$rowdb21['WHSLOCATIONWAREHOUSEZONECODE']."',
-					lokasi = '".$rowdb21['WAREHOUSELOCATIONCODE']."',
-					sn = '".$rowdb21['ELEMENTSCODE']."',
-					terima = '".$rowdb21['TGLTERIMA']."',
-					tgl_tutup = '".$Awal."',
-					tgl_buat =now()
-					
-					") or die("GAGAL SIMPAN");	
+	$simpan=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblopname_detail
+					(tipe,kd_benang,jenis_benang,lot,po,suppliercode,suppliername,qty,weight,cones,grd,zone,lokasi,sn,terima,tgl_tutup,tgl_buat)
+					VALUES (
+						'".sqlsrv_escape_str($rowdb21['ITEMTYPECODE'])."',
+						'".sqlsrv_escape_str($kd)."',
+						'".sqlsrv_escape_str($rowdb23['SUMMARIZEDDESCRIPTION'])."',
+						'".sqlsrv_escape_str($rowdb21['LOTCODE'])."',
+						'".sqlsrv_escape_str($rowdb21['LOTCREATIONORDERNUMBER'])."',
+						'".sqlsrv_escape_str($rowdb21['SUPPLIERCODE'])."',
+						'".sqlsrv_escape_str($rowdb21['LEGALNAME1'])."',
+						".(float)$rowdb21['QTY'].",
+						".round($rowdb21['KGS'],2).",
+						".(float)$rowdb21['CONES'].",
+						'".sqlsrv_escape_str($grd)."',
+						'".sqlsrv_escape_str($rowdb21['WHSLOCATIONWAREHOUSEZONECODE'])."',
+						'".sqlsrv_escape_str($rowdb21['WAREHOUSELOCATIONCODE'])."',
+						'".sqlsrv_escape_str($rowdb21['ELEMENTSCODE'])."',
+						'".sqlsrv_escape_str($rowdb21['TGLTERIMA'])."',
+						'".sqlsrv_escape_str($Awal)."',
+						GETDATE()
+					)");	
 	
 	}
 	if($simpan){		

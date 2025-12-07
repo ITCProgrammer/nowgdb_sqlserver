@@ -36,8 +36,8 @@ include("../koneksi.php");
 				  <?php				  
    $no=1;   
    $c=0;
-   $sql= mysqli_query($con,"SELECT x.* FROM tbl_stoklegacy x WHERE x.no_doc='$modal_id'");
-   while($r=mysqli_fetch_array($sql)){		
+   $sql= sqlsrv_query_safe($con,"SELECT x.* FROM dbnow_gdb.tbl_stoklegacy x WHERE x.no_doc='".sqlsrv_escape_str($modal_id)."'");
+   while($sql !== false && ($r=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){		
 	
 ?>
 	  <tr>

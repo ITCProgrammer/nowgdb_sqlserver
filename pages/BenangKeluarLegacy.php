@@ -2,13 +2,15 @@
 $Tujuan		= isset($_POST['tujuan']) ? $_POST['tujuan'] : '';
 $Tgl		= isset($_POST['tgl_trans']) ? $_POST['tgl_trans'] : '';
 $Bon		= isset($_POST['bon']) ? $_POST['bon'] : '';
-$Barcode	= substr($_POST['barcode'],-13);
+$Barcode	= isset($_POST['barcode']) ? substr($_POST['barcode'],-13) : '';
 $Doc		= isset($_POST['no_doc']) ? $_POST['no_doc'] : '';	
 
-if($_GET['doc']<>""){
-$Doc		= isset($_GET['doc']) ? $_GET['doc'] : '';
+include_once("../koneksi.php");
+
+if(isset($_GET['doc']) && $_GET['doc']<>""){
+    $Doc = $_GET['doc'];
 }else{
-$Doc		= isset($_POST['no_doc']) ? $_POST['no_doc'] : '';		
+    $Doc = isset($_POST['no_doc']) ? $_POST['no_doc'] : '';		
 }
 ?>
 <?php
@@ -18,11 +20,9 @@ function docno(){
 		
 		date_default_timezone_set("Asia/Jakarta");
 		$format = date("ymd")."3";
-		$sql=mysqli_query($con,"SELECT no_doc FROM tbl_stok_keluar WHERE substr(no_doc,1,7) like '%".$format."%'
-		ORDER BY no_doc DESC LIMIT 1 ") or die ("Gagal");
-		$d=mysqli_num_rows($sql);
-		if($d>0){
-			$r=mysqli_fetch_array($sql);
+		$sql=sqlsrv_query_safe($con,"SELECT TOP 1 no_doc FROM dbnow_gdb.tbl_stok_keluar WHERE SUBSTRING(no_doc,1,7) like '%".$format."%' ORDER BY no_doc DESC");
+		$r = ($sql !== false) ? sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC) : null;
+		if($r){
 			$d=$r['no_doc'];
 			$str=substr($d,7,3);
 			$Urut = (int)$str;
@@ -40,67 +40,72 @@ function docno(){
 }
 $nou=docno();
 
-if($_POST['simpan']=="Simpan"){
+if(isset($_POST['simpan']) && $_POST['simpan']=="Simpan"){
 // Skrip menyimpan data ke tabel transaksi utama
-		$mySql	= "INSERT INTO tbl_stok_keluar SET
-						tgl='".$Tgl."',
-						no_doc='".$nou."',
-						bon='".$Bon."',
-						tujuan='".$Tujuan."'";
-		$qry	= mysqli_query($con,$mySql) or die ("Gagal query 1 ");
+		$mySql	= "INSERT INTO dbnow_gdb.tbl_stok_keluar (tgl,no_doc,bon,tujuan)
+						VALUES ('".sqlsrv_escape_str($Tgl)."',
+						'".sqlsrv_escape_str($nou)."',
+						'".sqlsrv_escape_str($Bon)."',
+						'".sqlsrv_escape_str($Tujuan)."')";
+		$qry	= sqlsrv_query_safe($con,$mySql);
 	if($qry>0){
 		echo "<script>window.location='BenangKeluarLegacy-$nou';</script>";
 	}
 }
 
-$tmpSql 	= "SELECT COUNT(*) As qty, id,tujuan,tgl,bon,no_doc FROM tbl_stok_keluar WHERE no_doc='".$Doc."'";
-$tmpQry 	= mysqli_query($con,$tmpSql) or die ("Gagal Query Tmp0");
-$tmpData 	= mysqli_fetch_array($tmpQry);
-$tmpSql1 	= "SELECT id FROM tbl_stok_keluar WHERE no_doc='".$Doc."'";
-$tmpQry1 	= mysqli_query($con,$tmpSql1) or die ("Gagal Query Tmp1");
-$tmpData1 	= mysqli_fetch_array($tmpQry1);
-$dataID 	= $tmpData1['id'];
+$tmpSql 	= "SELECT COUNT(*) As qty, id,tujuan,tgl,bon,no_doc FROM dbnow_gdb.tbl_stok_keluar WHERE no_doc='".sqlsrv_escape_str($Doc)."' GROUP BY id,tujuan,tgl,bon,no_doc";
+$tmpQry 	= sqlsrv_query_safe($con,$tmpSql);
+$tmpData 	= ($tmpQry !== false) ? sqlsrv_fetch_array($tmpQry, SQLSRV_FETCH_ASSOC) : ['qty'=>0,'id'=>'','tujuan'=>'','tgl'=>'','bon'=>'','no_doc'=>''];
+if (!$tmpData) {
+	$tmpData = ['qty'=>0,'id'=>'','tujuan'=>'','tgl'=>'','bon'=>'','no_doc'=>''];
+}
+$tmpSql1 	= "SELECT id FROM dbnow_gdb.tbl_stok_keluar WHERE no_doc='".sqlsrv_escape_str($Doc)."'";
+$tmpQry1 	= sqlsrv_query_safe($con,$tmpSql1);
+$tmpData1 	= ($tmpQry1 !== false) ? sqlsrv_fetch_array($tmpQry1, SQLSRV_FETCH_ASSOC) : ['id'=>''];
+$dataID 	= isset($tmpData1['id']) ? $tmpData1['id'] : '';
 
-$sqlCek1	= mysqli_query($con,"SELECT COUNT(*) as jml, SUM(berat) as tberat FROM tbl_benang_keluar WHERE id_stok='$dataID' ");
-$ck1		= mysqli_fetch_array($sqlCek1);
+$sqlCek1	= sqlsrv_query_safe($con,"SELECT COUNT(*) as jml, SUM(berat) as tberat FROM dbnow_gdb.tbl_benang_keluar WHERE id_stok='".sqlsrv_escape_str($dataID)."' ");
+$ck1		= ($sqlCek1 !== false) ? sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC) : ['jml'=>0,'tberat'=>0];
 ?>
 <?php
 
-if($_POST['tambah']=="Tambah"){
+if(isset($_POST['tambah']) && $_POST['tambah']=="Tambah"){
 	
-  if($Barcode==""){
+	if($Barcode==""){
 	  echo"<script>alert('SN Masih Kosong');</script>";
   }else{
 	  
-	$sqlCek=mysqli_query($con,"SELECT COUNT(*) as jml FROM tbl_stoklegacy WHERE sn='$Barcode'");
-	$ck=mysqli_fetch_array($sqlCek);
+	$sqlCek=sqlsrv_query_safe($con,"SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stoklegacy WHERE sn='".sqlsrv_escape_str($Barcode)."'");
+	$ck=($sqlCek !== false) ? sqlsrv_fetch_array($sqlCek, SQLSRV_FETCH_ASSOC) : ['jml'=>0];
 	if($ck['jml']>0){
 		if($dataID<>""){
-			$itSqlC="SELECT  COUNT(*) as jml FROM tbl_benang_keluar
-								where sn='$Barcode'";
-			$itqryC		= mysqli_query($con,$itSqlC);
-			$ickC		= mysqli_fetch_array($itqryC);
+			$itSqlC="SELECT  COUNT(*) as jml FROM dbnow_gdb.tbl_benang_keluar
+								where sn='".sqlsrv_escape_str($Barcode)."'";
+			$itqryC		= sqlsrv_query_safe($con,$itSqlC);
+			$ickC		= ($itqryC !== false) ? sqlsrv_fetch_array($itqryC, SQLSRV_FETCH_ASSOC) : ['jml'=>0];
 			if($ickC['jml']>0){ }
 			else{
-			$itemSqlC="SELECT * FROM tbl_stoklegacy
-								where sn='$Barcode'";
-			$iSqlC		= mysqli_query($con,$itemSqlC);
-			$ckC		= mysqli_fetch_array($iSqlC);
-			$itemSql = "INSERT INTO tbl_benang_keluar SET
-									id_stok='$dataID',
-									berat='".$ckC['berat']."',
-									cones='".$ckC['cones']."',
-									sn='$Barcode'";
-			mysqli_query($con,$itemSql) or die ("Gagal Query item");
-			
-			
-			$itemSqlU="UPDATE tbl_stoklegacy
-								SET ada='0'
-								where  sn='$Barcode'";
-			mysqli_query($con,$itemSqlU) or die ("Gagal Query UPdate");
+			$itemSqlC="SELECT * FROM dbnow_gdb.tbl_stoklegacy
+								where sn='".sqlsrv_escape_str($Barcode)."'";
+			$iSqlC		= sqlsrv_query_safe($con,$itemSqlC);
+			$ckC		= ($iSqlC !== false) ? sqlsrv_fetch_array($iSqlC, SQLSRV_FETCH_ASSOC) : null;
+			if ($ckC) {
+				$itemSql = "INSERT INTO dbnow_gdb.tbl_benang_keluar (id_stok, berat, cones, sn)
+										VALUES ('".sqlsrv_escape_str($dataID)."',
+										'".sqlsrv_escape_str($ckC['berat'])."',
+										'".sqlsrv_escape_str($ckC['cones'])."',
+										'".sqlsrv_escape_str($Barcode)."')";
+				sqlsrv_query_safe($con,$itemSql,"benang_keluar insert");
+				
+				
+				$itemSqlU="UPDATE dbnow_gdb.tbl_stoklegacy
+									SET ada='0'
+									where  sn='".sqlsrv_escape_str($Barcode)."'";
+				sqlsrv_query_safe($con,$itemSqlU,"stoklegacy update ada=0");
 			}
-			$sqlCek1	= mysqli_query($con,"SELECT COUNT(*) as jml, SUM(berat) as tberat  FROM tbl_benang_keluar WHERE id_stok='$dataID' ");
-			$ck1		= mysqli_fetch_array($sqlCek1);
+			}
+			$sqlCek1	= sqlsrv_query_safe($con,"SELECT COUNT(*) as jml, SUM(berat) as tberat  FROM dbnow_gdb.tbl_benang_keluar WHERE id_stok='".sqlsrv_escape_str($dataID)."' ");
+			$ck1		= ($sqlCek1 !== false) ? sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC) : ['jml'=>0,'tberat'=>0];
 		}
 			
 		//echo"<script>location.reload();</script>";
@@ -217,10 +222,10 @@ if($_POST['tambah']=="Tambah"){
                   <tbody>
 				  <?php
 	$no=1;				  
-	$sql = mysqli_query($con," SELECT *, b.id as ids FROM tbl_stok_keluar a INNER JOIN tbl_benang_keluar b ON a.id=b.id_stok WHERE a.no_doc='$Doc' ");		 
-    while($r = mysqli_fetch_array($sql)){ 
-	$sqlCek1=mysqli_query($con,"SELECT * FROM tbl_stoklegacy WHERE sn='".$r['sn']."'");
-	$ck1=mysqli_fetch_array($sqlCek1);			  
+	$sql = sqlsrv_query_safe($con," SELECT b.*, b.id as ids FROM dbnow_gdb.tbl_stok_keluar a INNER JOIN dbnow_gdb.tbl_benang_keluar b ON a.id=b.id_stok WHERE a.no_doc='".sqlsrv_escape_str($Doc)."' ");		 
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){ 
+	$sqlCek1=sqlsrv_query_safe($con,"SELECT * FROM dbnow_gdb.tbl_stoklegacy WHERE sn='".sqlsrv_escape_str($r['sn'])."'");
+	$ck1=($sqlCek1 !== false) ? sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC) : ['berat'=>0,'satuan'=>'','blok'=>'','lot'=>''];			  
 					  ?>
 	  <tr>
 	  <td style="text-align: center"><?php echo $no; ?></td>

@@ -75,8 +75,8 @@ $Awal	= isset($_POST['tgl_awal']) ? $_POST['tgl_awal'] : '';
 <?php	 
 $no=1;   
 $c=0;				  
-$sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DATE_FORMAT(now(),'%Y-%m-%d') as tgl FROM tblmasukbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 30");		  
-    while($r = mysqli_fetch_array($sql)){
+$sql = sqlsrv_query_safe($con," SELECT TOP 30 tgl_tutup,sum(qty) as rol,sum(berat) as kg,CONVERT(char(10),GETDATE(),120) as tgl FROM dbnow_gdb.tblmasukbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
 		
 ?>
 	  <tr>
@@ -122,8 +122,8 @@ $sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DAT
 <?php	 
 $no=1;   
 $c=0;				  
-$sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DATE_FORMAT(now(),'%Y-%m-%d') as tgl FROM tblkeluarbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC LIMIT 30");		  
-    while($r = mysqli_fetch_array($sql)){
+$sql = sqlsrv_query_safe($con," SELECT TOP 30 tgl_tutup,sum(qty) as rol,sum(berat) as kg,CONVERT(char(10),GETDATE(),120) as tgl FROM dbnow_gdb.tblkeluarbenang GROUP BY tgl_tutup ORDER BY tgl_tutup DESC");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
 		
 ?>
 	  <tr>
@@ -228,8 +228,8 @@ $sql = mysqli_query($con," SELECT tgl_tutup,sum(qty) as rol,sum(berat) as kg,DAT
 <?php	
 if(isset($_POST['submit'])){
 
-$cektgl=mysqli_query($con,"SELECT DATE_FORMAT(NOW(),'%Y-%m-%d') as tgl,COUNT(tgl_tutup) as ck ,DATE_FORMAT(NOW(),'%H') as jam,DATE_FORMAT(NOW(),'%H:%i') as jam1 FROM tblmasukbenang WHERE tgl_tutup='".$Awal."' LIMIT 1");
-$dcek=mysqli_fetch_array($cektgl);
+$cektgl=sqlsrv_query_safe($con,"SELECT CONVERT(char(10),GETDATE(),120) as tgl,COUNT(tgl_tutup) as ck ,DATEPART(hour,GETDATE()) as jam,CONVERT(char(5),GETDATE(),108) as jam1 FROM dbnow_gdb.tblmasukbenang WHERE tgl_tutup='".sqlsrv_escape_str($Awal)."'");
+$dcek=($cektgl !== false) ? sqlsrv_fetch_array($cektgl, SQLSRV_FETCH_ASSOC) : ['tgl'=>$Awal,'ck'=>0,'jam'=>0,'jam1'=>'00:00'];
 $t1=strtotime($Awal);
 $t2=strtotime($dcek['tgl']);
 $selh=round(abs($t2-$t1)/(60*60*45));
@@ -361,21 +361,25 @@ ORDER BY
     else if($rowdb21M['DESTINATIONWAREHOUSECODE'] ='M051') { $knittM =  'KNITTING A- BENANG'; }
     else if($rowdb21M['DESTINATIONWAREHOUSECODE'] ='P503') { $knittM =  'YARN DYE'; } 
 	
-	$simpanM=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
-tgl_masuk	= '".$rowdb21M['MRNDATE']."',
-po_rmp	= '".$rowdb21M['ORDERCODE']."-".$rowdb21M['ORDERLINE']."',
-sj_no	= '".$rowdb21M['CHALLANNO']."',
-tipe	= 'GYR',
-kode	= '".$cd."',
-supplier= '".$rowdb21M['LEGALNAME1']."',
-jenis_benang= '".str_replace("'","''",$rowdb21M['SUMMARIZEDDESCRIPTION'])."',
-lot		= '".$rowdb21M['LOTCODE']."',
-blok	= '".$rowdb21M['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21M['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21M['QTY_DUS']."',
-cones	= '".$rowdb21M['QTY_CONES']."',
-berat	= '".round($rowdb21M['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN MASUK BENANG");		
+		$poRmpM = sqlsrv_escape_str($rowdb21M['ORDERCODE']."-".$rowdb21M['ORDERLINE']);
+		$simpanM=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblmasukbenang
+			(tgl_masuk,po_rmp,sj_no,tipe,kode,supplier,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+			VALUES (
+				'".$rowdb21M['MRNDATE']."',
+				LEFT('$poRmpM', COL_LENGTH('dbnow_gdb.tblmasukbenang','po_rmp')),
+				'".sqlsrv_escape_str($rowdb21M['CHALLANNO'])."',
+				'GYR',
+				'".sqlsrv_escape_str($cd)."',
+				'".sqlsrv_escape_str($rowdb21M['LEGALNAME1'])."',
+				'".sqlsrv_escape_str($rowdb21M['SUMMARIZEDDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21M['LOTCODE'])."',
+				'".sqlsrv_escape_str($rowdb21M['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21M['WAREHOUSELOCATIONCODE'])."',
+				".(float)$rowdb21M['QTY_DUS'].",
+				".(float)$rowdb21M['QTY_CONES'].",
+				".round($rowdb21M['QTY_KG'],2).",
+				'".sqlsrv_escape_str($Awal)."',
+				GETDATE()
+			)") ;		
 	
 
 }
@@ -489,20 +493,24 @@ if (trim($rowdb21RM['WAREHOUSECODE']) =="M904") { $knittRM = 'LT2'; }
 else if(trim($rowdb21RM['WAREHOUSECODE']) =="P501"){ $knittRM = 'LT1'; }
 else if(trim($rowdb21RM['WAREHOUSECODE']) =="P503"){ $knittRM = 'YND'; }
 		
-$simpanRM=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
-tgl_masuk	= '".$rowdb21RM['TRANSACTIONDATE']."',
-po_rmp	= '".$rowdb21RM['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RM['ORDERLINE']."',
-no_po	= '".$rowdb21RM['EXTERNALREFERENCE']."',
-kode	= '".str_replace("'","''",$rowdb21RM['ITEMDESCRIPTION'])."',
-tipe	= 'GYR',
-jenis_benang= '".str_replace("'","''",$rowdb21RM['SUMMARIZEDDESCRIPTION'])."',
-lot		= '".$rowdb21RM['LOTCODE']."',
-blok	= '".$rowdb21RM['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RM['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21RM['QTY_ROL']."',
-cones	= '".$rowdb21RM['QTY_CONES']."',
-berat	= '".round($rowdb21RM['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN RETUR MASUK BENANG");			
+		$poRmpRM = sqlsrv_escape_str($rowdb21RM['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RM['ORDERLINE']);
+		$simpanRM=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblmasukbenang
+									(tgl_masuk,po_rmp,no_po,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+									VALUES (
+										'".$rowdb21RM['TRANSACTIONDATE']."',
+										LEFT('$poRmpRM', COL_LENGTH('dbnow_gdb.tblmasukbenang','po_rmp')),
+										'".sqlsrv_escape_str($rowdb21RM['EXTERNALREFERENCE'])."',
+										'".sqlsrv_escape_str($rowdb21RM['ITEMDESCRIPTION'])."',
+										'GYR',
+										'".sqlsrv_escape_str($rowdb21RM['SUMMARIZEDDESCRIPTION'])."',
+										'".sqlsrv_escape_str($rowdb21RM['LOTCODE'])."',
+										'".sqlsrv_escape_str($rowdb21RM['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RM['WAREHOUSELOCATIONCODE'])."',
+										".(float)$rowdb21RM['QTY_ROL'].",
+										".(float)$rowdb21RM['QTY_CONES'].",
+										".round($rowdb21RM['QTY_KG'],2).",
+										'".sqlsrv_escape_str($Awal)."',
+										GETDATE()
+									)") ;
 		
 	}
 
@@ -593,20 +601,24 @@ if (trim($rowdb21RMY['WAREHOUSECODE']) =="M904") { $knittRMY = 'LT2'; }
 else if(trim($rowdb21RMY['WAREHOUSECODE']) =="P501"){ $knittRMY = 'LT1'; }
 else if(trim($rowdb21RMY['WAREHOUSECODE']) =="P503"){ $knittRMY = 'YND'; }
 		
-$simpanRMY=mysqli_query($con,"INSERT INTO `tblmasukbenang` SET 
-tgl_masuk	= '".$rowdb21RMY['TRANSACTIONDATE']."',
-po_rmp	= '".$rowdb21RMY['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RMY['ORDERLINE']."',
-no_po	= '".$rowdb21RMY['EXTERNALREFERENCE']."',
-kode	= '".str_replace("'","''",$rowdb21RMY['ITEMDESCRIPTION'])."',
-tipe	= 'DYR',
-jenis_benang= '".str_replace("'","''",$rowdb21RMY['SUMMARIZEDDESCRIPTION'])."',
-lot		= '".$rowdb21RMY['LOTCODE']."',
-blok	= '".$rowdb21RMY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RMY['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21RMY['QTY_ROL']."',
-cones	= '".$rowdb21RMY['QTY_CONES']."',
-berat	= '".round($rowdb21RMY['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN RETUR MASUK BENANG DYR");			
+		$poRmpRMY = sqlsrv_escape_str($rowdb21RMY['INTDOCUMENTPROVISIONALCODE']."-".$rowdb21RMY['ORDERLINE']);
+		$simpanRMY=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblmasukbenang
+									(tgl_masuk,po_rmp,no_po,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+									VALUES (
+										'".$rowdb21RMY['TRANSACTIONDATE']."',
+										LEFT('$poRmpRMY', COL_LENGTH('dbnow_gdb.tblmasukbenang','po_rmp')),
+										'".sqlsrv_escape_str($rowdb21RMY['EXTERNALREFERENCE'])."',
+										'".sqlsrv_escape_str($rowdb21RMY['ITEMDESCRIPTION'])."',
+										'DYR',
+										'".sqlsrv_escape_str($rowdb21RMY['SUMMARIZEDDESCRIPTION'])."',
+										'".sqlsrv_escape_str($rowdb21RMY['LOTCODE'])."',
+										'".sqlsrv_escape_str($rowdb21RMY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RMY['WAREHOUSELOCATIONCODE'])."',
+										".(float)$rowdb21RMY['QTY_ROL'].",
+										".(float)$rowdb21RMY['QTY_CONES'].",
+										".round($rowdb21RMY['QTY_KG'],2).",
+										'".sqlsrv_escape_str($Awal)."',
+										GETDATE()
+									)") ;
 		
 	}				
  // Keluar Benang Prod.
@@ -679,23 +691,26 @@ a.VALUESTRING ";
       else if($rowdb21K['DESTINATIONWAREHOUSECODE'] ='P503') { $knittK =  'YARN DYE'; } 
 	  $kdbenangK=trim($rowdb21K['SUBCODE01'])." ".trim($rowdb21K['SUBCODE02'])." ".trim($rowdb21K['SUBCODE03'])." ".trim($rowdb21K['SUBCODE04'])." ".trim($rowdb21K['SUBCODE05'])." ".trim($rowdb21K['SUBCODE06'])." ".trim($rowdb21K['SUBCODE07'])." ".trim($rowdb21K['SUBCODE08']);	
 
-		$simpanK=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
-tgl_keluar	= '".$rowdb21K['TRANSACTIONDATE']."',
-no_bon 	= '".$bonK."',
-knitt 	= '".$knittK."',
-no_po 	= '".$rowdb21K['EXTERNALREFERENCE']."',
-itemdesc= '".str_replace("'","''",$rowdb21K['ITEMDESCRIPTION'])."',
-supplier= '".$rowdb21K['SUPPLIER']."',
-kode 	= '".$kdbenangK."',
-tipe	= 'GYR',
-jenis_benang= '".str_replace("'","''",$rowdb21K['SUMMARIZEDDESCRIPTION'])."',
-lot 	= '".$rowdb21K['LOTCODE']."',
-blok 	= '".$rowdb21K['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21K['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21K['QTY_ROL']."',
-cones	= '".$rowdb21K['QTY_CONES']."',
-berat	= '".round($rowdb21K['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN KELUAR BENANG");			
+		$simpanK=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblkeluarbenang
+			(tgl_keluar,no_bon,knitt,no_po,itemdesc,supplier,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+			VALUES (
+				'".$rowdb21K['TRANSACTIONDATE']."',
+				'".sqlsrv_escape_str($bonK)."',
+				'".sqlsrv_escape_str($knittK)."',
+				'".sqlsrv_escape_str($rowdb21K['EXTERNALREFERENCE'])."',
+				'".sqlsrv_escape_str($rowdb21K['ITEMDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21K['SUPPLIER'])."',
+				'".sqlsrv_escape_str($kdbenangK)."',
+				'GYR',
+				'".sqlsrv_escape_str($rowdb21K['SUMMARIZEDDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21K['LOTCODE'])."',
+				'".sqlsrv_escape_str($rowdb21K['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21K['WAREHOUSELOCATIONCODE'])."',
+				".(float)$rowdb21K['QTY_ROL'].",
+				".(float)$rowdb21K['QTY_CONES'].",
+				".round($rowdb21K['QTY_KG'],2).",
+				'".sqlsrv_escape_str($Awal)."',
+				GETDATE()
+			)");			
 
 		
 	}
@@ -769,23 +784,26 @@ a.VALUESTRING ";
       else if($rowdb21KY['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKY =  'YARN DYE'; } 
 	  $kdbenangKY=trim($rowdb21KY['SUBCODE01'])." ".trim($rowdb21KY['SUBCODE02'])." ".trim($rowdb21KY['SUBCODE03'])." ".trim($rowdb21KY['SUBCODE04'])." ".trim($rowdb21KY['SUBCODE05'])." ".trim($rowdb21KY['SUBCODE06'])." ".trim($rowdb21KY['SUBCODE07'])." ".trim($rowdb21KY['SUBCODE08']);	
 
-		$simpanKY=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
-tgl_keluar	= '".$rowdb21KY['TRANSACTIONDATE']."',
-no_bon 	= '".$bonKY."',
-knitt 	= '".$knittKY."',
-no_po 	= '".$rowdb21KY['EXTERNALREFERENCE']."',
-itemdesc= '".str_replace("'","''",$rowdb21KY['ITEMDESCRIPTION'])."',
-supplier= '".$rowdb21KY['SUPPLIER']."',
-kode 	= '".$kdbenangKY."',
-tipe	= 'DYR',
-jenis_benang= '".str_replace("'","''",$rowdb21KY['SUMMARIZEDDESCRIPTION'])."',
-lot 	= '".$rowdb21KY['LOTCODE']."',
-blok 	= '".$rowdb21KY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KY['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21KY['QTY_ROL']."',
-cones	= '".$rowdb21KY['QTY_CONES']."',
-berat	= '".round($rowdb21KY['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN KELUAR BENANG DYR");			
+			$simpanKY=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblkeluarbenang
+			(tgl_keluar,no_bon,knitt,no_po,itemdesc,supplier,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+			VALUES (
+				'".$rowdb21KY['TRANSACTIONDATE']."',
+				'".sqlsrv_escape_str($bonKY)."',
+				'".sqlsrv_escape_str($knittKY)."',
+				'".sqlsrv_escape_str($rowdb21KY['EXTERNALREFERENCE'])."',
+				'".sqlsrv_escape_str($rowdb21KY['ITEMDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21KY['SUPPLIER'])."',
+				'".sqlsrv_escape_str($kdbenangKY)."',
+				'DYR',
+				'".sqlsrv_escape_str($rowdb21KY['SUMMARIZEDDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21KY['LOTCODE'])."',
+				'".sqlsrv_escape_str($rowdb21KY['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KY['WAREHOUSELOCATIONCODE'])."',
+				".(float)$rowdb21KY['QTY_ROL'].",
+				".(float)$rowdb21KY['QTY_CONES'].",
+				".round($rowdb21KY['QTY_KG'],2).",
+				'".sqlsrv_escape_str($Awal)."',
+				GETDATE()
+			)");			
 
 		
 	}	
@@ -876,23 +894,26 @@ GROUP BY
       else if($rowdb21RK['DESTINATIONWAREHOUSECODE'] ='P503') { $knittRK =  'YARN DYE'; } 
 	  $kdbenangRK=trim($rowdb21RK['SUBCODE01'])." ".trim($rowdb21RK['SUBCODE02'])." ".trim($rowdb21RK['SUBCODE03'])." ".trim($rowdb21RK['SUBCODE04'])." ".trim($rowdb21RK['SUBCODE05'])." ".trim($rowdb21RK['SUBCODE06'])." ".trim($rowdb21RK['SUBCODE07'])." ".trim($rowdb21RK['SUBCODE08']);	
 
-		$simpanRK=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
-tgl_keluar	= '".$rowdb21RK['TRANSACTIONDATE']."',
-no_bon 	= '".$bonRK."',
-knitt 	= '".$knittRK."',
-no_po 	= '".$rowdb21RK['EXTERNALREFERENCE']."',
-itemdesc= '".str_replace("'","''",$rowdb21RK['ITEMDESCRIPTION'])."',
-supplier= '".$rowdb21RK['SUPP']."',
-kode 	= '".$kdbenangRK."',
-tipe	= 'GYR',
-jenis_benang= '".str_replace("'","''",$rowdb21RK['SUMMARIZEDDESCRIPTION'])."',
-lot 	= '".$rowdb21RK['LOTCODE']."',
-blok 	= '".$rowdb21RK['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RK['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21RK['QTY_ROL']."',
-cones	= '".$rowdb21RK['QTY_CONES']."',
-berat	= '".round($rowdb21RK['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN RETUR KELUAR BENANG SUPP");			
+		$simpanRK=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblkeluarbenang
+			(tgl_keluar,no_bon,knitt,no_po,itemdesc,supplier,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+			VALUES (
+				'".$rowdb21RK['TRANSACTIONDATE']."',
+				'".sqlsrv_escape_str($bonRK)."',
+				'".sqlsrv_escape_str($knittRK)."',
+				'".sqlsrv_escape_str($rowdb21RK['EXTERNALREFERENCE'])."',
+				'".sqlsrv_escape_str($rowdb21RK['ITEMDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21RK['SUPP'])."',
+				'".sqlsrv_escape_str($kdbenangRK)."',
+				'GYR',
+				'".sqlsrv_escape_str($rowdb21RK['SUMMARIZEDDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21RK['LOTCODE'])."',
+				'".sqlsrv_escape_str($rowdb21RK['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21RK['WAREHOUSELOCATIONCODE'])."',
+				".(float)$rowdb21RK['QTY_ROL'].",
+				".(float)$rowdb21RK['QTY_CONES'].",
+				".round($rowdb21RK['QTY_KG'],2).",
+				'".sqlsrv_escape_str($Awal)."',
+				GETDATE()
+			)");			
 
 		
 	}
@@ -975,23 +996,26 @@ ADSTORAGE2.VALUESTRING ";
       else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKJ =  'YARN DYE'; } 
 	  $kdbenangKJ=trim($rowdb21KJ['SUBCODE01'])." ".trim($rowdb21KJ['SUBCODE02'])." ".trim($rowdb21KJ['SUBCODE03'])." ".trim($rowdb21KJ['SUBCODE04'])." ".trim($rowdb21KJ['SUBCODE05'])." ".trim($rowdb21KJ['SUBCODE06'])." ".trim($rowdb21KJ['SUBCODE07'])." ".trim($rowdb21KJ['SUBCODE08']);	
 
-		$simpanKJ=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
-tgl_keluar	= '".$rowdb21KJ['TRANSACTIONDATE']."',
-no_bon 	= '".$bonRK."',
-knitt 	= '".$knittKJ."',
-no_po 	= '".$rowdb21KJ['EXTERNALREFERENCE']."',
-itemdesc= '".str_replace("'","''",$rowdb21KJ['ITEMDESCRIPTION'])."',
-supplier= '".$rowdb21KJ['SUPP']."',
-kode 	= '".$rowdb21KJ."',
-tipe	= 'GYR',
-jenis_benang= '".str_replace("'","''",$rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
-lot 	= '".$rowdb21KJ['LOTCODE']."',
-blok 	= '".$rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21KJ['QTY_ROL']."',
-cones	= '".$rowdb21KJ['QTY_CONES']."',
-berat	= '".round($rowdb21KJ['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN JUAL BENANG");			
+		$simpanKJ=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblkeluarbenang
+			(tgl_keluar,no_bon,knitt,no_po,itemdesc,supplier,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+			VALUES (
+				'".$rowdb21KJ['TRANSACTIONDATE']."',
+				'".sqlsrv_escape_str($bonRK)."',
+				'".sqlsrv_escape_str($knittKJ)."',
+				'".sqlsrv_escape_str($rowdb21KJ['EXTERNALREFERENCE'])."',
+				'".sqlsrv_escape_str($rowdb21KJ['ITEMDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21KJ['SUPP'])."',
+				'".sqlsrv_escape_str($rowdb21KJ['DECOSUBCODE01']." ".$rowdb21KJ['DECOSUBCODE02']." ".$rowdb21KJ['DECOSUBCODE03']." ".$rowdb21KJ['DECOSUBCODE04']." ".$rowdb21KJ['DECOSUBCODE05']." ".$rowdb21KJ['DECOSUBCODE06']." ".$rowdb21KJ['DECOSUBCODE07']." ".$rowdb21KJ['DECOSUBCODE08'])."',
+				'GYR',
+				'".sqlsrv_escape_str($rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
+				'".sqlsrv_escape_str($rowdb21KJ['LOTCODE'])."',
+				'".sqlsrv_escape_str($rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE'])."',
+				".(float)$rowdb21KJ['QTY_ROL'].",
+				".(float)$rowdb21KJ['QTY_CONES'].",
+				".round($rowdb21KJ['QTY_KG'],2).",
+				'".sqlsrv_escape_str($Awal)."',
+				GETDATE()
+			)");			
 
 		
 	}
@@ -1070,23 +1094,26 @@ GROUP BY
       else if($rowdb21KJ['DESTINATIONWAREHOUSECODE'] ='P503') { $knittKJ =  'YARN DYE'; } 
 	  $kdbenangKJ=trim($rowdb21KJ['DECOSUBCODE01'])." ".trim($rowdb21KJ['DECOSUBCODE02'])." ".trim($rowdb21KJ['DECOSUBCODE03'])." ".trim($rowdb21KJ['DECOSUBCODE04'])." ".trim($rowdb21KJ['DECOSUBCODE05'])." ".trim($rowdb21KJ['DECOSUBCODE06'])." ".trim($rowdb21KJ['DECOSUBCODE07'])." ".trim($rowdb21KJ['DECOSUBCODE08']);	
 
-$simpanKJ=mysqli_query($con,"INSERT INTO `tblkeluarbenang` SET 
-tgl_keluar	= '".$rowdb21KJ['TRANSACTIONDATE']."',
-no_bon 	= '".$bonRK."',
-knitt 	= '".$knittKJ."',
-no_po 	= '".$rowdb21KJ['EXTERNALREFERENCE']."',
-itemdesc= '".str_replace("'","''",$rowdb21KJ['ITEMDESCRIPTION'])."',
-supplier= '".$rowdb21KJ['LEGALNAME1']."',
-kode 	= '".$rowdb21KJ."',
-tipe	= 'GYR',
-jenis_benang= '".str_replace("'","''",$rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
-lot 	= '".$rowdb21KJ['LOTCODE']."',
-blok 	= '".$rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE']."',
-qty		= '".$rowdb21KJ['QTY_ROL']."',
-cones	= '".$rowdb21KJ['QTY_CONES']."',
-berat	= '".round($rowdb21KJ['QTY_KG'],2)."',
-tgl_tutup = '".$Awal."',
-tgl_buat =now()") or die("GAGAL SIMPAN JUAL BENANG");			
+		$simpanKJ=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tblkeluarbenang
+										(tgl_keluar,no_bon,knitt,no_po,itemdesc,supplier,kode,tipe,jenis_benang,lot,blok,qty,cones,berat,tgl_tutup,tgl_buat)
+										VALUES (
+											'".$rowdb21KJ['TRANSACTIONDATE']."',
+											'".sqlsrv_escape_str($bonRK)."',
+											'".sqlsrv_escape_str($knittKJ)."',
+											'".sqlsrv_escape_str($rowdb21KJ['EXTERNALREFERENCE'])."',
+											'".sqlsrv_escape_str($rowdb21KJ['ITEMDESCRIPTION'])."',
+											'".sqlsrv_escape_str($rowdb21KJ['LEGALNAME1'])."',
+											'".sqlsrv_escape_str($rowdb21KJ['DECOSUBCODE01']." ".$rowdb21KJ['DECOSUBCODE02']." ".$rowdb21KJ['DECOSUBCODE03']." ".$rowdb21KJ['DECOSUBCODE04']." ".$rowdb21KJ['DECOSUBCODE05']." ".$rowdb21KJ['DECOSUBCODE06']." ".$rowdb21KJ['DECOSUBCODE07']." ".$rowdb21KJ['DECOSUBCODE08'])."',
+											'GYR',
+											'".sqlsrv_escape_str($rowdb21KJ['SUMMARIZEDDESCRIPTION'])."',
+											'".sqlsrv_escape_str($rowdb21KJ['LOTCODE'])."',
+											'".sqlsrv_escape_str($rowdb21KJ['WHSLOCATIONWAREHOUSEZONECODE']."-".$rowdb21KJ['WAREHOUSELOCATIONCODE'])."',
+											".(float)$rowdb21KJ['QTY_ROL'].",
+											".(float)$rowdb21KJ['QTY_CONES'].",
+											".round($rowdb21KJ['QTY_KG'],2).",
+											'".sqlsrv_escape_str($Awal)."',
+											GETDATE()
+										)");
 
 		
 	}				

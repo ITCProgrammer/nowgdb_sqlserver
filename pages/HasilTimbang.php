@@ -181,8 +181,8 @@ group by
 	no_demand ORDER BY id DESC";	
 		}
 		
-		$sql = mysqli_query($conr,$query);
-		while ($r=mysqli_fetch_array($sql)){          
+		$sql = sqlsrv_query_safe($conr,$query,'HasilTimbang main query');
+		while ($sql !== false && ($r=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){          
       ?>
       <tr>
         <td ><?php if($Gerobak!=""){ echo $r['no_gerobak']; }else{ ?><a href="#" class="btn btn-xs btn-danger show_detail" id="<?php echo $r['prod_order'].", ".$r['proses'].", ".$r['ket']." "; ?>">detail</a> <?php } ?></td>

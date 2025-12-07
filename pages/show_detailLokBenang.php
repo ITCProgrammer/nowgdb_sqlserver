@@ -30,8 +30,8 @@ include("../koneksi.php");
 				  <?php				  
    $no=1;   
    $c=0;
-	$sqllok=mysqli_query($con, "SELECT id,lokasi FROM tblambillokasi WHERE no_doc='$IntDoc'");					  
-    while($rLok=mysqli_fetch_array($sqllok)){	
+	$sqllok=sqlsrv_query_safe($con, "SELECT id,lokasi FROM dbnow_gdb.tblambillokasi WHERE no_doc='".sqlsrv_escape_str($IntDoc)."'");					  
+    while($sqllok !== false && ($rLok=sqlsrv_fetch_array($sqllok, SQLSRV_FETCH_ASSOC))){	
 ?>
 	  <tr>
 	  <td style="text-align: center"><input type=checkbox name="cek1[<?php echo $no; ?>]" value="<?php echo $no; ?>"></td>

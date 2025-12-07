@@ -2,8 +2,8 @@
 include("../koneksi.php");
 if($_POST){ 
 	extract($_POST);
-	$intDoc = mysqli_real_escape_string($con,$_POST['intdoc']); 
-	$kdBng  = mysqli_real_escape_string($con,$_POST['kdbng']);
+	$intDoc = sqlsrv_escape_str($_POST['intdoc']); 
+	$kdBng  = sqlsrv_escape_str($_POST['kdbng']);
 	
 	$no=1;
 	$sqlDB21 = " SELECT 
@@ -55,10 +55,8 @@ b.WAREHOUSELOCATIONCODE,c.SUPPLIERCODE ";
 	//}				  
     while($rowdb21 = db2_fetch_assoc($stmt1)){
 	$lokasi = trim($rowdb21['WHSLOCATIONWAREHOUSEZONECODE'])."-".trim($rowdb21['WAREHOUSELOCATIONCODE']);	
-	if($_POST['cek1'][$no]==$no){	
-	mysqli_query($con, "INSERT INTO tblambillokasi SET 
-	no_doc='$intDoc',		  
-	lokasi='$lokasi'");
+	if(isset($_POST['cek1'][$no]) && $_POST['cek1'][$no]==$no){	
+	sqlsrv_query_safe($con, "INSERT INTO dbnow_gdb.tblambillokasi (no_doc,lokasi) VALUES ('$intDoc','$lokasi')","insert ambil lokasi");
 
 	}else{
 		
