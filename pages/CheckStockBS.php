@@ -1,11 +1,11 @@
 <?php
    $tOK=0;
    $tTOK=0;	
-   $Where1= " AND sf.`id_upload`='$_GET[id]' " ;	 
-   $sql1=mysqli_query($con," SELECT sf.* FROM tbl_stokfull_bs sf
-		LEFT JOIN tbl_upload_bs tu ON tu.id=sf.id_upload  
+   $Where1= " AND sf.id_upload='".$_GET['id']."' " ;	 
+   $sql1=sqlsrv_query_safe($con," SELECT sf.* FROM dbnow_gdb.tbl_stokfull_bs sf
+		LEFT JOIN dbnow_gdb.tbl_upload_bs tu ON tu.id=sf.id_upload  
 		WHERE tu.status='Open' $Where1 ");	
-   while($ck1=mysqli_fetch_array($sql1)){
+   while($sql1 !== false && ($ck1=sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC))){
 	$sqlDB22 = " SELECT WHSLOCATIONWAREHOUSEZONECODE, WAREHOUSELOCATIONCODE, LOGICALWAREHOUSECODE FROM 
 	BALANCE b WHERE b.ITEMTYPECODE IN ('GYR''DYR') AND b.ELEMENTSCODE='$ck1[SN]' ";
 	$stmt2   = db2_exec($conn1,$sqlDB22, array('cursor'=>DB2_SCROLLABLE));
@@ -46,13 +46,13 @@
                   </thead>
                   <tbody>
 				  <?php   
-   $Where= " AND sf.`id_upload`='$_GET[id]' " ;	 
-   $sql=mysqli_query($con," SELECT sf.* FROM tbl_stokfull_bs sf
-		LEFT JOIN tbl_upload_bs tu ON tu.id=sf.id_upload  
+   $Where= " AND sf.id_upload='".$_GET['id']."' " ;	 
+   $sql=sqlsrv_query_safe($con," SELECT sf.* FROM dbnow_gdb.tbl_stokfull_bs sf
+		LEFT JOIN dbnow_gdb.tbl_upload_bs tu ON tu.id=sf.id_upload  
 		WHERE tu.status='Open' $Where ");				  
    $no=1;   
    $c=0;
-    while($rowd=mysqli_fetch_array($sql)){
+    while($sql !== false && ($rowd=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
 	$sqlDB22 = " SELECT WHSLOCATIONWAREHOUSEZONECODE, WAREHOUSELOCATIONCODE, LOGICALWAREHOUSECODE FROM 
 	BALANCE b WHERE b.ITEMTYPECODE IN ('GYR''DYR') AND b.ELEMENTSCODE='$rowd[SN]' ";
 	$stmt2   = db2_exec($conn1,$sqlDB22, array('cursor'=>DB2_SCROLLABLE));
@@ -99,17 +99,17 @@
         AND b.LOGICALWAREHOUSECODE='M034' ";
     
     $stmt21 = db2_exec($conn1, $sqlDB221, array('cursor'=>DB2_SCROLLABLE));
-    while($rowdb221 = db2_fetch_assoc($stmt21)){
-        
-        $sql12 = mysqli_query($con, " 
-          SELECT sf.* 
-          FROM tbl_stokfull_bs sf
-          LEFT JOIN tbl_upload_bs tu ON tu.id=sf.id_upload  
-          WHERE tu.status='Open' 
-            AND sf.id_upload='$_GET[id]' 
-            AND sf.SN='{$rowdb221['ELEMENTSCODE']}' 
-        ");	
-        $rowd12 = mysqli_fetch_array($sql12);	
+	    while($rowdb221 = db2_fetch_assoc($stmt21)){
+	        
+	        $sql12 = sqlsrv_query_safe($con, " 
+	          SELECT sf.* 
+	          FROM dbnow_gdb.tbl_stokfull_bs sf
+	          LEFT JOIN dbnow_gdb.tbl_upload_bs tu ON tu.id=sf.id_upload  
+	          WHERE tu.status='Open' 
+	            AND sf.id_upload='".$_GET['id']."' 
+	            AND sf.SN='".sqlsrv_escape_str($rowdb221['ELEMENTSCODE'])."' 
+	        ");	
+	        $rowd12 = ($sql12 !== false) ? sqlsrv_fetch_array($sql12, SQLSRV_FETCH_ASSOC) : [];
 
         $lokasiBalance = trim($rowdb221['WHSLOCATIONWAREHOUSEZONECODE'])."-".trim($rowdb221['WAREHOUSELOCATIONCODE']);
         

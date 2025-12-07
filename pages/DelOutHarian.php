@@ -1,6 +1,6 @@
 <?php
 $tgl = $_GET['tgl'];
-mysqli_query($con, "DELETE FROM tblkeluarbenang WHERE tgl_tutup='$tgl'");
+sqlsrv_query_safe($con, "DELETE FROM dbnow_gdb.tblkeluarbenang WHERE tgl_tutup='$tgl'");
 
 echo "<script type=\"text/javascript\">
             window.location = \"TutupInOutHarian\"

@@ -26,10 +26,10 @@
                   </thead>
                   <tbody>
 				  <?php				  
-   $no=1;   
-   $c=0;
-   $sql = mysqli_query($con," SELECT * FROM tblopname WHERE tgl_tutup='$_GET[tgl]'and tipe='$_GET[tipe]' ORDER BY id ASC");		  
-    while($r = mysqli_fetch_array($sql)){
+$no=1;   
+$c=0;
+ $sql = sqlsrv_query_safe($con," SELECT * FROM dbnow_gdb.tblopname WHERE tgl_tutup='".$_GET['tgl']."'and tipe='".$_GET['tipe']."' ORDER BY id ASC");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
 		
 ?>
 	  <tr>

@@ -51,8 +51,8 @@ $Akhir	= isset($_POST['tgl_akhir']) ? $_POST['tgl_akhir'] : '';
 	 
 $no=1;   
 $c=0;
-$sql = mysqli_query($con," SELECT * FROM tblmasukbenang WHERE tgl_tutup='$_GET[tgl]' ORDER BY id ASC");		  
-    while($r = mysqli_fetch_array($sql)){										   
+$sql = sqlsrv_query_safe($con," SELECT * FROM dbnow_gdb.tblmasukbenang WHERE tgl_tutup='".$_GET['tgl']."' ORDER BY id ASC");		  
+    while($sql !== false && ($r = sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){										   
 			
 ?>
 	  <tr>

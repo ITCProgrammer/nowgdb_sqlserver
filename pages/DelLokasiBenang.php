@@ -2,12 +2,12 @@
 //include("../koneksi.php");
 if($_POST){ 
 	extract($_POST);
-	$intDoc = mysqli_real_escape_string($con,$_POST['intdoc']);
+	$intDoc = sqlsrv_escape_str($_POST['intdoc']);
 	$no=1;
-	$sqllok=mysqli_query($con, "SELECT id,lokasi FROM tblambillokasi WHERE no_doc='".$_POST['intdoc']."'");					  
-    while($rLok=mysqli_fetch_array($sqllok)){
+	$sqllok=sqlsrv_query_safe($con, "SELECT id,lokasi FROM dbnow_gdb.tblambillokasi WHERE no_doc='".$intDoc."'");					  
+    while($sqllok !== false && ($rLok=sqlsrv_fetch_array($sqllok, SQLSRV_FETCH_ASSOC))){
 	if($_POST['cek1'][$no]==$no){
-	mysqli_query($con, "DELETE FROM tblambillokasi WHERE id='$rLok[id]'");	
+	sqlsrv_query_safe($con, "DELETE FROM dbnow_gdb.tblambillokasi WHERE id='".$rLok['id']."'");	
 	}	
 		else{
 			

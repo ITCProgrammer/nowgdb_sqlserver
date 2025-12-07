@@ -82,4 +82,34 @@ function sqlsrv_val_or_null($value)
     return "'" . sqlsrv_escape_str($value) . "'";
 }
 
+// Helper pembungkus sqlsrv_query dengan logging + notifikasi ringan
+if (!function_exists('sqlsrv_query_safe')) {
+    /**
+     * @param resource $conn Koneksi sqlsrv
+     * @param string   $sql  Query yang akan dieksekusi
+     * @param string   $ctx  Info singkat (opsional) untuk log
+     *
+     * @return resource|false
+     */
+    function sqlsrv_query_safe($conn, $sql, $ctx = '')
+    {
+        static $notif_shown = false;
+
+        $stmt = sqlsrv_query($conn, $sql);
+        if ($stmt === false) {
+            $err = print_r(sqlsrv_errors(), true);
+            $msg = 'SQLSRV query failed' . ($ctx ? " ($ctx)" : '') . ': ' . $err . ' | SQL: ' . $sql;
+            error_log($msg);
+
+            if (!$notif_shown) {
+                $safeCtx = $ctx ? " [$ctx]" : '';
+                echo "<script>console.error('DB error{$safeCtx}. Lihat log server untuk detail.');</script>";
+                $notif_shown = true;
+            }
+        }
+
+        return $stmt;
+    }
+}
+
 ?>
