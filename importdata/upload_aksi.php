@@ -36,7 +36,7 @@ for ($i=2; $i<=$jumlah_baris; $i++){
  
 	if($nama != "" && $alamat != "" && $telepon != ""){
 		// input data ke database (table data_pegawai)
-		mysqli_query($mysqli,"INSERT into data_pegawai values('','$nama','$alamat','$telepon')");
+		sqlsrv_query_safe($mysqli,"INSERT into data_pegawai (nama,alamat,telepon) values('".sqlsrv_escape_str($nama)."','".sqlsrv_escape_str($alamat)."','".sqlsrv_escape_str($telepon)."')","importdata upload");
 		$berhasil++;
 	}
 }
