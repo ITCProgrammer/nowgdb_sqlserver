@@ -492,16 +492,16 @@ $sqlDB22 = " SELECT WHSLOCATIONWAREHOUSEZONECODE, WAREHOUSELOCATIONCODE, LOTCODE
 </div>
 <?php 
 if($_POST['simpan_zone']=="Save changes"){
-	$zone1=sqlsrv_escape(strtoupper($_POST['zone1']));
-	$sqlData1=sqlsrv_query($con,"INSERT INTO dbnow_gdb.tbl_zone (nama) VALUES ('$zone1')");
+	$zone1=sqlsrv_escape_str(strtoupper($_POST['zone1']));
+	$sqlData1=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tbl_zone (nama) VALUES ('$zone1')","CheckStock:insert zone");
 	if($sqlData1){	
 		echo "<script>window.location='CheckStock';</script>";
 	}
 }
 if($_POST['simpan_lokasi']=="Save changes"){
-	$zone2=sqlsrv_escape(strtoupper($_POST['zone2']));
-	$lokasi2=sqlsrv_escape(strtoupper($_POST['lokasi1']));
-	$sqlData1=sqlsrv_query($con,"INSERT INTO dbnow_gdb.tbl_lokasi (nama, zone) VALUES ('$lokasi2','$zone2')");
+	$zone2=sqlsrv_escape_str(strtoupper($_POST['zone2']));
+	$lokasi2=sqlsrv_escape_str(strtoupper($_POST['lokasi1']));
+	$sqlData1=sqlsrv_query_safe($con,"INSERT INTO dbnow_gdb.tbl_lokasi (nama, zone) VALUES ('$lokasi2','$zone2')","CheckStock:insert lokasi");
 	if($sqlData1){	
 		echo "<script>window.location='CheckStock';</script>";
 	}
