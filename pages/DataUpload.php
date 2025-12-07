@@ -60,10 +60,16 @@ if (!function_exists('sqlsrv_query_safe')) {
 								COUNT(*) AS JML, 
 								SUM(CASE WHEN status='belum cek' THEN 1 ELSE 0 END) AS bcek,
 								SUM(CASE WHEN status='ok' THEN 1 ELSE 0 END) AS scek
-							 FROM intbl_stokfull 
-							 WHERE id_upload='".$rowd['id']."'"
+							 FROM dbnow_gdb.tbl_stokfull 
+							 WHERE id_upload='".sqlsrv_escape_str($rowd['id'])."'",
+							"DataUpload:summary upload ".$rowd['id']
 						);					  
-	  					$rowd1=($sql1 !== false) ? sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC) : ['JML' => 0, 'bcek' => 0, 'scek' => 0];
+	  					if ($sql1 === false) {
+							$rowd1 = ['JML' => 0, 'bcek' => 0, 'scek' => 0];
+							echo '<tr><td colspan="10" class="text-danger text-center">Gagal hitung status untuk upload ID '.htmlspecialchars($rowd['id']).'</td></tr>';
+							continue;
+						}
+						$rowd1=sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC);
 
 						// format tanggal dari SQL Server (DateTime) ke string
 						$tglUpload = $rowd['tgl_upload'];

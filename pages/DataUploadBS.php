@@ -33,10 +33,13 @@ $Zone		= isset($_POST['zone']) ? $_POST['zone'] : '';
                   <tbody>
 				  <?php
 					$no=1; 
-					$sql=sqlsrv_query($con,"SELECT * FROM dbnow_gdb.tbl_upload_bs ORDER BY id DESC");					  
-	  				while($rowd=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC)){
-						$sql1=sqlsrv_query($con,"SELECT COUNT(*) AS JML FROM dbnow_gdb.tbl_stokfull_bs WHERE id_upload='".$rowd['id']."'");					  
-	  					$rowd1=sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC);
+						$sql=sqlsrv_query_safe($con,"SELECT * FROM dbnow_gdb.tbl_upload_bs ORDER BY id DESC","DataUploadBS:list");					  
+						if ($sql === false) {
+							echo '<tr><td colspan="8" class="text-center text-danger">Gagal mengambil data upload BS (lihat log server).</td></tr>';
+						}
+		  				while($sql !== false && ($rowd=sqlsrv_fetch_array($sql, SQLSRV_FETCH_ASSOC))){
+							$sql1=sqlsrv_query_safe($con,"SELECT COUNT(*) AS JML FROM dbnow_gdb.tbl_stokfull_bs WHERE id_upload='".sqlsrv_escape_str($rowd['id'])."'","DataUploadBS:count ".$rowd['id']);					  
+		  					$rowd1=($sql1 !== false) ? sqlsrv_fetch_array($sql1, SQLSRV_FETCH_ASSOC) : ['JML'=>0];
 
 							$tglUpload = $rowd['tgl_upload'];
 							if ($tglUpload instanceof DateTime) {

@@ -1,32 +1,30 @@
 <?php
 $Zone		= isset($_POST['zone']) ? $_POST['zone'] : '';
 $Lokasi		= isset($_POST['lokasi']) ? $_POST['lokasi'] : '';
-$Barcode	= substr($_POST['barcode'],-13);
-?>
+$Barcode	= isset($_POST['barcode']) ? substr($_POST['barcode'],-13) : '';
+$sql_errors = [];
 
-<?php
-// Helper sederhana supaya error query tidak meledak dengan fatal TypeError
-function sqlsrv_query_safe($conn, $sql)
-{
-    $stmt = sqlsrv_query($conn, $sql);
-    if ($stmt === false) {
-        // Log detail error ke error_log agar mudah dicek tanpa memutus eksekusi
-        error_log('SQLSRV query failed: ' . print_r(sqlsrv_errors(), true) . ' | SQL: ' . $sql);
-    }
-
-    return $stmt;
-}
-
-$sqlCek1 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='ok' and zone='$Zone' AND lokasi='$Lokasi'");
+$sqlCek1 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='ok' and zone='$Zone' AND lokasi='$Lokasi'", "CheckStock:count_ok");
+if ($sqlCek1 === false) { $sql_errors[] = "Gagal ambil count stokfull status ok untuk zone=$Zone lokasi=$Lokasi"; }
 $ck1     = ($sqlCek1 !== false) ? sqlsrv_fetch_array($sqlCek1, SQLSRV_FETCH_ASSOC) : ['jml' => 0];
-$sqlCek2 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='belum cek' and zone='$Zone' AND lokasi='$Lokasi'");
+$sqlCek2 = sqlsrv_query_safe($con, "SELECT COUNT(*) as jml FROM dbnow_gdb.tbl_stokfull WHERE status='belum cek' and zone='$Zone' AND lokasi='$Lokasi'", "CheckStock:count_blmcek");
+if ($sqlCek2 === false) { $sql_errors[] = "Gagal ambil count stokfull status belum cek untuk zone=$Zone lokasi=$Lokasi"; }
 $ck2     = ($sqlCek2 !== false) ? sqlsrv_fetch_array($sqlCek2, SQLSRV_FETCH_ASSOC) : ['jml' => 0];
 
+if (!empty($sql_errors)) {
+    echo '<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><h5><i class="icon fas fa-ban"></i> Query Error</h5><ul style="margin-left:18px;">';
+    foreach ($sql_errors as $err) {
+        echo '<li>'.htmlspecialchars($err).'</li>';
+    }
+    echo '</ul></div>';
+}
+
 if($_POST['cek']=="Cek" or $_POST['cari']=="Cari"){
-	//if (strlen($_POST['barcode'])==13){
-	//$sqlCek=sqlsrv_query($con,"SELECT COUNT(*) as jml FROM	dbnow_gdb.tbl_stokfull WHERE zone='$Zone' AND lokasi='$Lokasi' AND SN='$Barcode'");
-		$sqlCek=sqlsrv_query_safe($con,"SELECT COUNT(*) as jml, zone, lokasi, kg, lot FROM dbnow_gdb.tbl_stokfull WHERE SN='$Barcode'");
-		$ck=($sqlCek !== false) ? sqlsrv_fetch_array($sqlCek, SQLSRV_FETCH_ASSOC) : ['jml' => 0, 'zone' => '', 'lokasi' => '', 'kg' => 0, 'lot' => ''];
+		//if (strlen($_POST['barcode'])==13){
+		//$sqlCek=sqlsrv_query($con,"SELECT COUNT(*) as jml FROM	dbnow_gdb.tbl_stokfull WHERE zone='$Zone' AND lokasi='$Lokasi' AND SN='$Barcode'");
+			$sqlCek=sqlsrv_query_safe($con,"SELECT COUNT(*) as jml, zone, lokasi, kg, lot FROM dbnow_gdb.tbl_stokfull WHERE SN='$Barcode'");
+			if ($sqlCek === false) { $sql_errors[] = "Gagal cek SN $Barcode di tbl_stokfull"; }
+			$ck=($sqlCek !== false) ? sqlsrv_fetch_array($sqlCek, SQLSRV_FETCH_ASSOC) : ['jml' => 0, 'zone' => '', 'lokasi' => '', 'kg' => 0, 'lot' => ''];
 	if($Zone=="" and $Lokasi==""){
 		echo"<script>alert('Zone atau Lokasi belum dipilih');</script>";
 	}else if(is_numeric(trim($Barcode))== true and $Barcode!="" and strlen($Barcode)==13 and (substr($Barcode,0,2)=="15" or substr($Barcode,0,2)=="16" or
