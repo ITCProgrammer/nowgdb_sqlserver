@@ -56,7 +56,7 @@
       <td style="text-align: center"><?php echo $r['lot']; ?></td>
       <td style="text-align: center"><?php echo $r['suppliercode']; ?></td>
       <td style="text-align: center"><?php echo $r['suppliername']; ?></td>
-      <td style="text-align: center"><?php echo $r['weight']; ?></td>
+      <td style="text-align: center"><?php echo number_format((float)$r['weight'], 3); ?></td>
       <td style="text-align: left"><?php echo $r['qty']; ?></td>
       <td style="text-align: left"><?php echo $r['cones']; ?></td>
       <td style="text-align: left"><?php echo $r['grd']; ?></td>
