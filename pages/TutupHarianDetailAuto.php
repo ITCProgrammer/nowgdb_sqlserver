@@ -97,6 +97,8 @@ a.VALUESTRING ";
 		$grd="D";	
 	}else if($rowdb21['QUALITYLEVELCODE']=="5"){
 		$grd="E";	
+	}else if($rowdb21['QUALITYLEVELCODE']=="6"){
+		$grd="F";	
 	}else{
 		$grd="";
 	}	
